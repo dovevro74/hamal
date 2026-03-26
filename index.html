@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚨 חמ"ל מבזקים וחירום</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a1a; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; color: white; }
+        .main-layout { display: flex; flex: 1; overflow: hidden; }
+        
+        /* עמודות */
+        .news-side { width: 380px; background: #f0f2f5; display: flex; flex-direction: column; border-left: 3px solid #333; }
+        .n12-side { width: 300px; background: #2c3e50; border-left: 3px solid #333; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; padding: 20px; }
+        .map-side { flex: 1; background: #000; }
+
+        .header { background: #2c3e50; color: white; padding: 12px; text-align: center; margin: 0; font-size: 1.1rem; border-bottom: 2px solid #1a1a1a; display: flex; justify-content: center; align-items: center; gap: 10px; }
+
+        /* כפתור N12 */
+        .n12-link {
+            display: inline-block;
+            background: #ed1c24;
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 15px rgba(237, 28, 36, 0.4);
+            transition: 0.3s;
+            border: 2px solid white;
+        }
+        .n12-link:hover { transform: scale(1.05); background: #d01920; }
+
+        /* עיצוב המבזקים */
+        #feed { flex: 1; overflow-y: auto; padding: 10px; background: #e9ecef; }
+        .news-item { background: white; display: block; text-decoration: none; padding: 12px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: 0.2s; }
+        .meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .badge { font-size: 0.75rem; font-weight: bold; padding: 3px 8px; border-radius: 4px; color: white; }
+        .time { font-size: 0.85rem; color: #1240dd; font-weight: bold; }
+        .title { color: #1c1e21; font-size: 0.95rem; line-height: 1.4; font-weight: 600; display: block; }
+
+        /* התאמה לנייד/אייפד */
+        @media (max-width: 900px) {
+            .main-layout { flex-direction: column; overflow-y: auto; }
+            .news-side, .n12-side, .map-side { width: 100%; height: 450px; flex: none; border: none; border-bottom: 4px solid #333; }
+            .n12-side { height: 180px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-layout">
+    <div class="news-side">
+        <h2 class="header">מבזקים <button style="font-size:0.7rem; cursor:pointer;" onclick="fetchNews()">🔄 רענן</button></h2>
+        <div id="feed">טוען מבזקים...</div>
+    </div>
+
+    <div class="n12-side">
+        <h2 class="header">צ'אט הכתבים</h2>
+        <a href="https://www.n12.co.il/Chat" target="_blank" class="n12-link">פתח N12 📱</a>
+        <p style="font-size: 0.8rem; margin-top: 15px; opacity: 0.8;">הצ'אט ייפתח בטאב נפרד לעדכונים שוטפים</p>
+    </div>
+
+    <div class="map-side">
+        <h2 class="header" style="background: #8e44ad;">מפת צופר</h2>
+        <iframe src="https://www.tzevaadom.co.il/" style="width:100%; height:100%; border:none;"></iframe>
+    </div>
+</div>
+
+<script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4ncDieZ3xZKsaBVMbXt6vQkyyWaEFeyt4uWlx9JBIdvi5rS4G4w-HUXKx9MjpMCH4/exec';
+    
+    const config = {
+        'Rotter': { color: '#d35400', label: 'רוטר' },
+        'Ynet': { color: '#ed1c24', label: 'Ynet' },
+        'Inn': { color: '#f39c12', label: 'ערוץ 7' },
+        'default': { color: '#666', label: 'מבזק' }
+    };
+
+    async function fetchNews() {
+        try {
+            const res = await fetch(SCRIPT_URL);
+            const data = await res.json();
+            const feed = document.getElementById('feed');
+            
+            feed.innerHTML = data.map(item => {
+                const time = new Date(item.pubDate).toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'});
+                const source = config[item.source] || config['default'];
+
+                return `
+                    <a href="${item.link}" target="_blank" class="news-item" style="border-right: 8px solid ${source.color};">
+                        <div class="meta">
+                            <span class="badge" style="background-color: ${source.color};">${source.label}</span>
+                            <span class="time">${time}</span>
+                        </div>
+                        <span class="title">${item.title}</span>
+                    </a>`;
+            }).join('');
+        } catch (e) { 
+            console.error(e);
+            document.getElementById('feed').innerHTML = "שגיאה בטעינה. בדוק חיבור לאינטרנט.";
+        }
+    }
+
+    fetchNews();
+    setInterval(fetchNews, 60000);
+</script>
+</body>
+</html>
