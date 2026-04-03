@@ -34,7 +34,8 @@
         .meta { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 5px; }
         .badge { padding: 2px 6px; border-radius: 4px; color: white; font-weight: bold; }
         
-        .tg-container { flex: 1; background: #fff; overflow: hidden; }
+        .tg-container { flex: 1; background: #fff; overflow: hidden; position: relative; }
+        .tg-iframe { width: 100%; height: 100%; border: none; }
 
         .map-side { flex: 1; position: relative; background: #000; }
         
@@ -66,11 +67,8 @@
         </div>
         <div class="section">
             <div class="header" style="background: #0088cc;">📱 טלגרם: התרעה חריגה</div>
-            <div class="tg-container" id="tg-area">
-                <script async src="https://telegram.org/js/telegram-widget.js?22" 
-                        data-telegram-channel="Criticalalerts" 
-                        data-limit="5" 
-                        data-dark="1"></script>
+            <div class="tg-container">
+                <iframe class="tg-iframe" src="https://telemetr.io/en/channels/1335439708-Criticalalerts/embed"></iframe>
             </div>
         </div>
     </div>
@@ -84,9 +82,8 @@
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4ncDieZ3xZKsaBVMbXt6vQkyyWaEFeyt4uWlx9JBIdvi5rS4G4w-HUXKx9MjpMCH4/exec";
 
-    // המרה לגימטריה - מתוקן למניעת כפילויות בשנה
-    function toGematria(num, isYear = false) {
-        if (isYear && num >= 5000) num -= 5000;
+    function toGematria(num) {
+        if (num >= 5000) num -= 5000;
         const letters = { 400:'ת', 300:'ש', 200:'ר', 100:'ק', 90:'צ', 80:'פ', 70:'ע', 60:'ס', 50:'נ', 40:'מ', 30:'ל', 20:'כ', 10:'י', 9:'ט', 8:'ח', 7:'ז', 6:'ו', 5:'ה', 4:'ד', 3:'ג', 2:'ב', 1:'א' };
         let result = '';
         if (num === 15) return 'טו';
@@ -106,9 +103,9 @@
         const parts = hebDate.split(' ');
         
         const dayG = toGematria(parseInt(parts[0]));
-        // הסרת ה-ת' וה-ש' שהפונקציה מייצרת אם הן כבר קיימות בקידומת
-        const yearLetters = toGematria(parseInt(parts[2]), true);
-        const yearG = "הת" + yearLetters;
+        // חישוב שנה מדויק: לוקחים רק את עשרות והיחידות מהגימטריה ומוסיפים התש
+        const yearNum = parseInt(parts[2]) % 1000; 
+        const yearG = "התש" + toGematria(yearNum % 100);
 
         document.getElementById("clock-gregorian").innerText = now.toLocaleDateString('he-IL');
         document.getElementById("clock-hebrew").innerText = `${dayG} ${parts[1]} ${yearG} | ${now.toLocaleTimeString('he-IL')}`;
