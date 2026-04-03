@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚨 חמ"ל מבצעי - גרסת תיקון</title>
+    <title>🚨 חמ"ל מבצעי - גרסה יציבה</title>
     <style>
         :root {
             --bg: #1a1a1a;
@@ -23,7 +23,8 @@
 
         .main-layout { display: flex; flex: 1; position: relative; overflow: hidden; }
         
-        .news-side { width: 420px; background: var(--bg); display: flex; flex-direction: column; border-left: 4px solid #333; transition: 0.3s; z-index: 10; }
+        /* טור מבזקים */
+        .news-side { width: 420px; background: var(--bg); display: flex; flex-direction: column; border-left: 4px solid #333; transition: 0.3s ease; z-index: 10; position: relative; }
         .news-side.hidden { margin-right: -420px; }
 
         .section { height: 50%; display: flex; flex-direction: column; overflow: hidden; border-bottom: 2px solid #333; }
@@ -32,16 +33,17 @@
         #feed { flex: 1; overflow-y: auto; padding: 10px; }
         .news-item { background: var(--panel); padding: 12px; border-radius: 8px; margin-bottom: 10px; border-right: 6px solid #666; text-decoration: none; color: var(--text); display: block; }
         
-        /* טלגרם - שימוש ב-Widget חיצוני יציב */
-        .tg-container { flex: 1; background: #fff; overflow: hidden; }
+        .tg-container { flex: 1; background: #fff; overflow-y: auto; padding: 5px; text-align: center; }
 
         .map-side { flex: 1; position: relative; background: #000; }
         
+        /* חץ הסתרה - מיקום ותפקוד */
         #toggle-btn { 
             position: absolute; top: 15px; right: 15px; z-index: 1000; 
             background: #2c3e50; color: white; border: 2px solid #fff; 
-            border-radius: 50%; width: 35px; height: 35px; cursor: pointer; 
+            border-radius: 50%; width: 40px; height: 40px; cursor: pointer; 
             display: flex; align-items: center; justify-content: center;
+            font-size: 20px; font-weight: bold; box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
 
         iframe { width: 100%; height: 100%; border: none; }
@@ -65,14 +67,20 @@
         </div>
         <div class="section">
             <div class="header" style="background: #0088cc;">📱 טלגרם: התרעה חריגה</div>
-            <div class="tg-container">
-                <iframe src="https://widget.rss.app/v1/wall/tp8p1AByG09qA1tN" frameborder="0" style="width:100%; height:100%;"></iframe>
+            <div class="tg-container" id="tg-widget-area">
+                <script async src="https://telegram.org/js/telegram-widget.js?22" 
+                        data-telegram-post="Criticalalerts/1" 
+                        data-width="100%" 
+                        data-userpic="false"></script>
+                <div style="margin-top:10px;">
+                    <a href="https://t.me/s/Criticalalerts" target="_blank" style="color:#0088cc; font-size:0.9rem; text-decoration:none; font-weight:bold;">פתח ערוץ טלגרם מלא ↗</a>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="map-side">
-        <button id="toggle-btn" onclick="toggleNews()">▶</button>
+        <button id="toggle-btn" onclick="toggleNews()">></button>
         <iframe src="https://www.tzevaadom.co.il/"></iframe>
     </div>
 </div>
@@ -80,7 +88,6 @@
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4ncDieZ3xZKsaBVMbXt6vQkyyWaEFeyt4uWlx9JBIdvi5rS4G4w-HUXKx9MjpMCH4/exec";
 
-    // פונקציית גימטריה נקייה לחלוטין
     function toGematria(num) {
         const letters = { 400:'ת', 300:'ש', 200:'ר', 100:'ק', 90:'צ', 80:'פ', 70:'ע', 60:'ס', 50:'נ', 40:'מ', 30:'ל', 20:'כ', 10:'י', 9:'ט', 8:'ח', 7:'ז', 6:'ו', 5:'ה', 4:'ד', 3:'ג', 2:'ב', 1:'א' };
         let result = '';
@@ -99,11 +106,7 @@
         const now = new Date();
         const hebDate = new Intl.DateTimeFormat('he-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'}).format(now);
         const parts = hebDate.split(' ');
-        
         const dayG = toGematria(parseInt(parts[0]));
-        
-        // תיקון השנה: לוקחים את השנה (למשל 5786), מורידים 5000, נשאר 786. 
-        // המרה לגימטריה של 786 תיתן תשפ"ו. מוסיפים ה' בהתחלה.
         const yearNum = parseInt(parts[2]) - 5000;
         const yearG = "ה" + toGematria(yearNum);
 
@@ -123,32 +126,9 @@
         const side = document.getElementById("newsSide");
         const btn = document.getElementById("toggle-btn");
         const isHidden = side.classList.toggle("hidden");
-        // כיוון החץ: אם מוסתר (Hidden) יציג חץ שמאלה לפתיחה, אם מוצג יציג חץ ימינה לסגירה
-        btn.innerText = isHidden ? "◀" : "▶";
+        // שינוי סימון החץ
+        btn.innerText = isHidden ? "<" : ">";
     }
 
     async function fetchNews() {
-        try {
-            const res = await fetch(SCRIPT_URL + "?t=" + Date.now());
-            const data = await res.json();
-            if (!data) return;
-            document.getElementById("feed").innerHTML = data.map(item => {
-                const time = new Date(item.pubDate).toLocaleTimeString("he-IL", {hour: "2-digit", minute: "2-digit"});
-                const src = (item.source || "").toLowerCase();
-                let color = "#666", label = "מבזק";
-                if (src.includes("rotter")) { color = "#d35400"; label = "רוטר"; }
-                else if (src.includes("ynet")) { color = "#ed1c24"; label = "Ynet"; }
-                return `<a href="${item.link}" target="_blank" class="news-item" style="border-right-color: ${color}"><div class="meta"><span class="badge" style="background:${color}">${label}</span><span style="color:#5dade2; font-weight:bold;">${time}</span></div><div class="title" style="font-size:0.95rem;">${item.title}</div></a>`;
-            }).join("");
-        } catch (e) {}
-    }
-
-    updateClock();
-    fetchWeather();
-    fetchNews();
-    setInterval(updateClock, 1000);
-    setInterval(fetchNews, 60000);
-</script>
-
-</body>
-</html>
+        try
