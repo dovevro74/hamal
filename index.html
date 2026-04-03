@@ -10,7 +10,7 @@
             --text-main: #1c1e21;
             --item-bg: #ffffff;
             --header-bg: #2c3e50;
-            --top-bar-height: 60px; /* הגדרת גובה קבוע לסרגל */
+            --top-h: 65px;
         }
 
         body.dark-mode {
@@ -20,52 +20,51 @@
             --header-bg: #000000;
         }
 
-        /* מניעת גלילה של כל העמוד */
-        body { font-family: system-ui, sans-serif; background: #000; margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; color: white; }
+        /* מניעת גלילה של כל העמוד - קריטי למחשב Dell */
+        body { font-family: system-ui, sans-serif; background: #000; margin: 0; padding: 0; height: 100vh; width: 100vw; display: flex; flex-direction: column; overflow: hidden; color: white; }
         
         .top-bar { 
-            height: var(--top-bar-height);
+            height: var(--top-h);
             background: #111; 
-            padding: 0 20px; 
+            padding: 0 15px; 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
             border-bottom: 1px solid #444; 
             box-sizing: border-box;
-            z-index: 2000; 
+            flex-shrink: 0;
         }
 
-        .top-left { display: flex; align-items: center; gap: 15px; }
-        #weather { color: #3498db; font-weight: bold; font-size: 1.1rem; }
-        #clock { color: #f1c40f; font-weight: bold; text-align: left; line-height: 1.1; font-size: 0.95rem; }
-        .btn-ui { background: #34495e; color: white; border: 1px solid #777; padding: 5px 12px; border-radius: 5px; cursor: pointer; font-size: 0.85rem; }
+        .top-left { display: flex; align-items: center; gap: 12px; }
+        #weather { color: #3498db; font-weight: bold; font-size: 1rem; min-width: 60px; }
+        #clock { color: #f1c40f; font-weight: bold; text-align: left; line-height: 1.2; font-size: 0.9rem; }
+        .btn-ui { background: #34495e; color: white; border: 1px solid #777; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
 
-        /* החישוב החשוב: גובה המסך פחות הסרגל העליון */
         .main-layout { 
             display: flex; 
-            height: calc(100vh - var(--top-bar-height)); 
+            height: calc(100vh - var(--top-h)); 
             width: 100%; 
             overflow: hidden; 
             position: relative; 
         }
         
-        .news-side { width: 420px; min-width: 420px; background: var(--bg-side); display: flex; flex-direction: column; border-left: 4px solid #333; transition: margin-right 0.4s ease; z-index: 10; height: 100%; }
+        .news-side { width: 420px; min-width: 420px; background: var(--bg-side); display: flex; flex-direction: column; border-left: 4px solid #333; transition: margin-right 0.3s ease; z-index: 10; height: 100%; }
         .news-side.hidden { margin-right: -420px; min-width: 0; }
 
-        .map-side { flex: 1; background: #000; position: relative; height: 100%; display: flex; flex-direction: column; }
+        .map-side { flex: 1; background: #000; position: relative; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
 
         #toggle-btn {
             position: absolute;
             top: 50%;
-            right: 15px;
+            right: 10px;
             transform: translateY(-50%);
             z-index: 1001;
             background: #2c3e50;
             color: white;
             border: 2px solid #fff;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 38px;
+            height: 38px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -73,23 +72,22 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.8);
         }
 
-        .header { background: var(--header-bg); color: white; padding: 10px; text-align: center; margin: 0; border-bottom: 2px solid #111; font-size: 1rem; flex-shrink: 0; }
+        .header { background: var(--header-bg); color: white; padding: 8px; text-align: center; margin: 0; border-bottom: 2px solid #111; font-size: 1rem; flex-shrink: 0; }
 
-        #feed { flex: 1; overflow-y: auto; padding: 15px; background: var(--bg-side); }
-        
-        /* עיצוב המבזק */
+        #feed { flex: 1; overflow-y: auto; padding: 12px; background: var(--bg-side); }
         .news-item { background: var(--item-bg); color: var(--text-main); display: block; text-decoration: none; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-right: 10px solid #ccc; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        .meta { display: flex; justify-content: space-between; margin-bottom: 4px; }
-        .badge { font-size: 0.75rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; color: white; }
-        .time { font-size: 0.85rem; font-weight: bold; color: #1240dd; }
+        .meta { display: flex; justify-content: space-between; margin-bottom: 3px; }
+        .badge { font-size: 0.7rem; font-weight: bold; padding: 2px 5px; border-radius: 3px; color: white; }
+        .time { font-size: 0.8rem; font-weight: bold; color: #1240dd; }
         body.dark-mode .time { color: #5dade2; }
-        .title { font-size: 0.95rem; line-height: 1.4; font-weight: 600; display: block; }
+        .title { font-size: 0.95rem; line-height: 1.3; font-weight: 600; }
 
-        iframe { width: 100%; flex: 1; border: none; }
+        iframe { width: 100%; height: 100%; border: none; flex: 1; }
 
         @media (max-width: 900px) {
             .main-layout { flex-direction: column; }
-            .news-side { width: 100%; height: 40%; min-width: 100%; }
+            .news-side { width: 100%; height: 45%; min-width: 100%; border-left: none; border-bottom: 4px solid #333; }
+            .news-side.hidden { margin-right: 0; margin-top: -45vh; }
         }
     </style>
 </head>
@@ -105,13 +103,13 @@
 
 <div class="main-layout">
     <div class="news-side" id="newsSide">
-        <h2 class="header">מבזקי חדשות <button class="btn-ui" onclick="fetchNews()">🔄</button></h2>
-        <div id="feed">מבזקים בטעינה...</div>
+        <h2 class="header">מבזקים <button class="btn-ui" onclick="fetchNews()">🔄</button></h2>
+        <div id="feed">טוען מבזקים...</div>
     </div>
 
     <div class="map-side">
         <div id="toggle-btn" onclick="toggleNews()">▶</div>
-        <h2 class="header" style="background: #8e44ad;">מפת צבע אדום בזמן אמת</h2>
+        <h2 class="header" style="background: #8e44ad;">מפת צבע אדום</h2>
         <iframe src="https://www.tzevaadom.co.il/" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
     </div>
 </div>
@@ -125,8 +123,8 @@
             const timeStr = now.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
             const gregDate = now.toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit", year: "numeric" });
             const hebDayMonth = new Intl.DateTimeFormat("he-u-ca-hebrew", {day:"numeric", month:"long"}).format(now);
-            document.getElementById("clock").innerHTML = `<span style="font-size:0.8rem; color:#bbb;">${gregDate}</span><br>${hebDayMonth} התשפ"ו | ${timeStr}`;
-        } catch (e) { console.log(e); }
+            document.getElementById("clock").innerHTML = `<span style="font-size:0.75rem; color:#888;">${gregDate}</span><br>${hebDayMonth} התשפ"ו | ${timeStr}`;
+        } catch (e) { console.error("Clock error"); }
     }
 
     function toggleDark() { document.body.classList.toggle("dark-mode"); }
@@ -142,7 +140,9 @@
         try {
             const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=32.09&longitude=34.88&current_weather=true");
             const data = await res.json();
-            document.getElementById("weather").innerHTML = "🌡️ " + Math.round(data.current_weather.temperature) + "°C";
+            if(data && data.current_weather) {
+                document.getElementById("weather").innerHTML = "🌡️ " + Math.round(data.current_weather.temperature) + "°C";
+            }
         } catch (e) { document.getElementById("weather").innerHTML = "ישראל"; }
     }
 
@@ -151,23 +151,11 @@
         try {
             const res = await fetch(SCRIPT_URL);
             const data = await res.json();
+            if(!data || data.length === 0) return;
+            
             feed.innerHTML = data.map(item => {
                 const time = new Date(item.pubDate).toLocaleTimeString("he-IL", {hour:"2-digit", minute:"2-digit"});
                 const src = (item.source || "").toLowerCase();
                 let color = "#666", label = "מבזק";
                 if (src.includes("rotter")) { color = "#d35400"; label = "רוטר"; }
-                else if (src.includes("ynet")) { color = "#ed1c24"; label = "Ynet"; }
-                else if (src.includes("inn") || src.includes("7")) { color = "#f39c12"; label = "ערוץ 7"; }
-                return `<a href="${item.link}" target="_blank" class="news-item" style="border-right-color: ${color};">
-                    <div class="meta"><span class="badge" style="background-color: ${color};">${label}</span><span class="time">${time}</span></div>
-                    <span class="title">${item.title}</span></a>`;
-            }).join("");
-        } catch (e) { feed.innerHTML = "טוען..."; }
-    }
-
-    setInterval(updateClock, 1000);
-    setInterval(fetchNews, 60000);
-    updateClock(); fetchWeather(); fetchNews();
-</script>
-</body>
-</html>
+                else if (src.includes("
