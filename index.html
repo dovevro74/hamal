@@ -8,26 +8,17 @@
         body.dark-mode { --bg: #000000; --panel: #1c1c1e; --text: #ffffff; --item-bg: #2c2c2e; --border: #333; --accent: #0a84ff; }
         
         body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; transition: 0.3s; }
-        
         .top-bar { height: 60px; background: var(--panel); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-bottom: 1px solid var(--border); }
-        
         .main-layout { display: flex; flex: 1; position: relative; overflow: hidden; }
         
         .news-side { width: 400px; background: var(--bg); display: flex; flex-direction: column; border-left: 2px solid var(--border); transition: 0.3s ease-in-out; z-index: 10; }
-        /* מצב מוסתר - הפאנל יוצא החוצה ימינה */
         .news-side.hidden { margin-right: -400px; }
 
         #feed { flex: 1; overflow-y: auto; padding: 12px; }
         .news-item { background: var(--item-bg); padding: 12px; border-radius: 10px; margin-bottom: 10px; text-decoration: none; color: inherit; display: block; border-right: 5px solid #ccc; }
         body.dark-mode .news-item { border-right-color: #444; }
 
-        /* כפתור חץ מתוקן */
-        #toggle-btn { 
-            position: absolute; top: 15px; right: 15px; z-index: 100;
-            background: #444; color: white; border-radius: 50%; width: 35px; height: 35px; 
-            cursor: pointer; border: 2px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;
-        }
-
+        #toggle-btn { position: absolute; top: 15px; right: 15px; z-index: 100; background: #444; color: white; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; border: 2px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
         .badge { padding: 2px 6px; border-radius: 4px; color: white; font-weight: bold; font-size: 0.75rem; }
         iframe { width: 100%; height: 100%; border: none; background: white; }
     </style>
@@ -37,7 +28,7 @@
 <div class="top-bar">
     <div id="weather" style="font-weight: bold; color: var(--accent);">🌡️ טוען...</div>
     <div style="display: flex; gap: 15px; align-items: center;">
-        <button onclick="toggleDarkMode()" style="cursor:pointer; padding:5px 10px; border-radius:8px; border:1px solid var(--border); background:var(--item-bg); color:var(--text);" id="dark-btn">🌙 מצב לילה</button>
+        <button onclick="toggleDarkMode()" id="dark-btn" style="cursor:pointer; padding:5px 10px; border-radius:8px; border:1px solid var(--border); background:var(--item-bg); color:var(--text);">🌙 מצב לילה</button>
         <div style="text-align: left;">
             <div id="clock-gregorian" style="color:#888; font-size:0.7rem"></div>
             <div id="clock-hebrew" style="color: #d4a017; font-weight: bold;"></div>
@@ -47,10 +38,9 @@
 
 <div class="main-layout">
     <div class="news-side" id="newsSide">
-        <div style="padding:15px; background:var(--panel); text-align:center; font-weight:bold; border-bottom:1px solid var(--border);">📢 מבזקים - </div>
+        <div style="padding:15px; background:var(--panel); text-align:center; font-weight:bold; border-bottom:1px solid var(--border);">📢 מבזקים - דובב</div>
         <div id="feed">טוען...</div>
     </div>
-
     <div style="flex:1; position:relative;">
         <button id="toggle-btn" onclick="toggleNews()">→</button>
         <iframe src="https://www.tzevaadom.co.il/"></iframe>
@@ -60,77 +50,53 @@
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4ncDieZ3xZKsaBVMbXt6vQkyyWaEFeyt4uWlx9JBIdvi5rS4G4w-HUXKx9MjpMCH4/exec";
 
-    // תיקון לוגיקת החץ
-    function toggleNews() {
-        const side = document.getElementById("newsSide");
-        const btn = document.getElementById("toggle-btn");
-        const isHidden = side.classList.toggle("hidden");
-        
-        // כשהפאנל פתוח מראים חץ ימינה (לסגירה). כשהוא סגור מראים חץ שמאלה (לפתיחה).
-        btn.innerText = isHidden ? "←" : "→";
-    }
-
     function toggleDarkMode() {
         const isDark = document.body.classList.toggle('dark-mode');
         document.getElementById('dark-btn').innerText = isDark ? "☀️ מצב יום" : "🌙 מצב לילה";
     }
 
-    function toGematria(num) {
-        if (num === 15) return 'טו'; if (num === 16) return 'טז';
-        const letters = { 400:'ת', 300:'ש', 200:'ר', 100:'ק', 90:'צ', 80:'פ', 70:'ע', 60:'ס', 50:'נ', 40:'מ', 30:'ל', 20:'כ', 10:'י', 9:'ט', 8:'ח', 7:'ז', 6:'ו', 5:'ה', 4:'ד', 3:'ג', 2:'ב', 1:'א' };
-        let res = '';
-        for (let val of Object.keys(letters).sort((a,b)=>b-a)) {
-            while (num >= val) { res += letters[val]; num -= val; }
-        }
-        return res;
+    function toggleNews() {
+        const side = document.getElementById("newsSide");
+        const btn = document.getElementById("toggle-btn");
+        const isHidden = side.classList.toggle("hidden");
+        btn.innerText = isHidden ? "←" : "→";
     }
 
     function updateClock() {
         const now = new Date();
-        const heb = new Intl.DateTimeFormat('he-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'}).format(now).split(' ');
         document.getElementById("clock-gregorian").innerText = now.toLocaleDateString('he-IL') + " | " + now.toLocaleTimeString('he-IL');
-        document.getElementById("clock-hebrew").innerText = `${toGematria(parseInt(heb[0]))} ${heb[1]} ${"התש" + toGematria(parseInt(heb[2]) % 100)}`;
+        // כאן ניתן להוסיף לוגיקה לתאריך עברי אם תרצה
     }
 
     async function fetchNews() {
         try {
             const res = await fetch(SCRIPT_URL + "?t=" + Date.now());
-	    let data = await res.json();
-    
-	    // מיון נוסף בצד הלקוח ליתר ביטחון
-	    data.sort((a, b) => b.timestamp - a.timestamp);
+            let data = await res.json();
+            
+            // המיון הקריטי: מהחדש לישן
+            data.sort((a, b) => b.timestamp - a.timestamp);
 
             document.getElementById("feed").innerHTML = data.map(item => {
                 const time = new Date(item.timestamp).toLocaleTimeString("he-IL", {hour: "2-digit", minute: "2-digit"});
                 const src = (item.source || "").toLowerCase();
-                let color = "#888", label = "מבזק";
-                if (src.includes("רוטר")) { color = "#d35400"; label = "רוטר"; }
-                else if (src.includes("7") || src.includes("inn")) { color = "#ff8c00"; label = "ערוץ 7"; }
-                else if (src.includes("ynet")) { color = "#ed1c24"; label = "Ynet"; }
+                let color = "#ed1c24"; // ברירת מחדל Ynet
+                if (src.includes("7")) color = "#ff8c00";
 
                 return `
                     <a href="${item.link}" target="_blank" class="news-item" style="border-right-color: ${color}">
                         <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                            <span class="badge" style="background:${color}">${label}</span>
+                            <span class="badge" style="background:${color}">${item.source}</span>
                             <span style="color:var(--accent); font-weight:bold; font-size:0.85rem;">${time}</span>
                         </div>
                         <div style="font-size:0.95rem; line-height:1.4;">${item.title}</div>
                     </a>`;
             }).join("");
-        } catch (e) {}
+        } catch (e) { console.error(e); }
     }
 
-    async function fetchWeather() {
-        try {
-            const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=32.08&longitude=34.78&current_weather=true");
-            const d = await res.json();
-            document.getElementById("weather").innerText = `🌡️ תל אביב: ${Math.round(d.current_weather.temperature)}°C`;
-        } catch (e) {}
-    }
-
-    updateClock(); fetchWeather(); fetchNews();
     setInterval(updateClock, 1000);
     setInterval(fetchNews, 45000);
+    updateClock(); fetchNews();
 </script>
 </body>
 </html>
