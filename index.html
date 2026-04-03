@@ -27,6 +27,8 @@
             flex-shrink: 0;
             z-index: 2000;
         }
+        .top-left { display: flex; align-items: center; gap: 15px; }
+        #weather { color: #3498db; font-weight: bold; font-size: 1.1rem; }
         #clock-container { text-align: left; line-height: 1.2; }
         #clock-hebrew { color: #f1c40f; font-weight: bold; font-size: 1rem; }
         #clock-gregorian { color: #888; font-size: 0.8rem; }
@@ -41,41 +43,42 @@
             display: flex; 
             flex-direction: column; 
             border-left: 4px solid #333; 
-            transition: margin-right 0.3s ease;
+            transition: transform 0.3s ease;
             z-index: 10;
         }
-        .news-side.hidden { margin-right: -420px; min-width: 0; }
+        .news-side.hidden { transform: translateX(100%); width: 0; min-width: 0; }
 
         .news-section { height: 45%; display: flex; flex-direction: column; overflow: hidden; border-bottom: 2px solid #333; }
         .telegram-section { height: 55%; display: flex; flex-direction: column; overflow: hidden; background: #1a1a1a; }
 
-        #tg-container { flex: 1; overflow-y: auto; padding: 10px; }
+        #tg-container { flex: 1; overflow-y: auto; padding: 10px; text-align: center; }
 
         .map-side { flex: 1; background: #000; position: relative; }
 
-        /* כפתור הסתרה */
+        /* כפתור הסתרה (החץ) */
         #toggle-btn {
             position: absolute;
             top: 50%;
-            right: 10px;
+            right: 420px;
             transform: translateY(-50%);
-            z-index: 1001;
+            z-index: 2001;
             background: #2c3e50;
             color: white;
             border: 2px solid #fff;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 35px;
+            height: 35px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            transition: right 0.3s ease;
         }
+        .hidden + .map-side #toggle-btn { right: 10px; }
 
         .header { background: var(--header-bg); color: white; padding: 10px; text-align: center; margin: 0; font-size: 1rem; border-bottom: 1px solid #333; }
 
-        /* עיצוב מבזקים */
+        /* עיצוב מבזקים עם אייקונים */
         #feed { flex: 1; overflow-y: auto; padding: 15px; }
         .news-item { 
             background: var(--item-bg); 
@@ -86,10 +89,9 @@
             border-radius: 8px; 
             margin-bottom: 10px; 
             border-right: 8px solid #666; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
         .meta { display: flex; justify-content: space-between; margin-bottom: 5px; align-items: center; }
-        .badge { font-size: 0.7rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; color: white; }
+        .badge { font-size: 0.7rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; color: white; text-transform: uppercase; }
         .time { font-size: 0.8rem; font-weight: bold; color: #5dade2; }
         .title { font-size: 0.9rem; line-height: 1.4; font-weight: 600; }
 
@@ -99,17 +101,20 @@
 <body>
 
 <div class="top-bar">
-    <div style="color: #3498db; font-weight: bold; font-size: 1.2rem;">📡 חמ"ל מבצעי</div>
+    <div class="top-left">
+        <div id="weather">טוען...</div>
+        <div style="color: #3498db; font-weight: bold; font-size: 1.2rem; margin-right: 15px;">📡 חמ"ל מבצעי</div>
+    </div>
     <div id="clock-container">
         <div id="clock-gregorian">--/--/----</div>
-        <div id="clock-hebrew">טוען...</div>
+        <div id="clock-hebrew">טוען תאריך...</div>
     </div>
 </div>
 
 <div class="main-layout">
     <div class="news-side" id="newsSide">
         <div class="news-section">
-            <h2 class="header">מבזקי חדשות <button onclick="fetchNews()" style="background:none; border:none; color:white; cursor:pointer;">🔄</button></h2>
+            <h2 class="header">מבזקי חדשות <button onclick="fetchNews()" style="background:none; border:none; color:white; cursor:pointer; font-size: 1rem;">🔄</button></h2>
             <div id="feed">טוען מבזקים...</div>
         </div>
 
@@ -118,7 +123,7 @@
             <div id="tg-container">
                 <script async src="https://telegram.org/js/telegram-widget.js?22" 
                         data-telegram-channel="Criticalalerts" 
-                        data-limit="5" 
+                        data-limit="10" 
                         data-dark="1"></script>
             </div>
         </div>
@@ -137,53 +142,7 @@
         const now = new Date();
         const timeStr = now.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
         const gregDate = now.toLocaleDateString("he-IL", { day: '2-digit', month: '2-digit', year: 'numeric' });
-        const hebOptions = { day: 'numeric', month: 'long', calendar: 'hebrew' };
-        const hebDatePart = new Intl.DateTimeFormat('he-u-ca-hebrew', hebOptions).format(now);
         
-        document.getElementById("clock-gregorian").innerText = gregDate;
-        document.getElementById("clock-hebrew").innerText = hebDatePart + " | " + timeStr;
-    }
-
-    function toggleNews() {
-        const side = document.getElementById("newsSide");
-        const btn = document.getElementById("toggle-btn");
-        side.classList.toggle("hidden");
-        btn.innerText = side.classList.contains("hidden") ? "◀" : "▶";
-    }
-
-    async function fetchNews() {
-        const feedDiv = document.getElementById("feed");
         try {
-            const res = await fetch(SCRIPT_URL + "?t=" + Date.now());
-            const data = await res.json();
-            if(!data) return;
-            
-            feedDiv.innerHTML = data.map(item => {
-                const time = new Date(item.pubDate).toLocaleTimeString("he-IL", {hour:"2-digit", minute:"2-digit"});
-                const src = (item.source || "").toLowerCase();
-                let color = "#666", label = "מבזק";
-                
-                if (src.includes("rotter")) { color = "#d35400"; label = "רוטר"; }
-                else if (src.includes("ynet")) { color = "#ed1c24"; label = "Ynet"; }
-                else if (src.includes("inn") || src.includes("7")) { color = "#f39c12"; label = "ערוץ 7"; }
-                
-                return `
-                    <a href="${item.link}" target="_blank" class="news-item" style="border-right-color: ${color};">
-                        <div class="meta">
-                            <span class="badge" style="background:${color}">${label}</span>
-                            <span class="time">${time}</span>
-                        </div>
-                        <div class="title">${item.title}</div>
-                    </a>`;
-            }).join("");
-        } catch (e) { feedDiv.innerHTML = "טוען נתונים..."; }
-    }
-
-    updateClock();
-    fetchNews();
-    setInterval(updateClock, 1000);
-    setInterval(fetchNews, 60000);
-</script>
-
-</body>
-</html>
+            const hebOptions = { day: 'numeric', month: 'long', calendar: 'hebrew' };
+            const hebDatePart = new Intl.DateTimeFormat('he-u-ca-hebrew', hebOptions).format(
