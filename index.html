@@ -50,8 +50,23 @@
             position: relative; 
         }
         
-        .news-side { width: 420px; min-width: 420px; background: var(--bg-side); display: flex; flex-direction: column; border-left: 4px solid #333; transition: margin-right 0.3s ease; z-index: 10; height: 100%; }
+        /* עיצוב טור הצד הכולל את המבזקים והטלגרם */
+        .news-side { 
+            width: 420px; 
+            min-width: 420px; 
+            background: var(--bg-side); 
+            display: flex; 
+            flex-direction: column; 
+            border-left: 4px solid #333; 
+            transition: margin-right 0.3s ease; 
+            z-index: 10; 
+            height: 100%; 
+        }
         .news-side.hidden { margin-right: -420px; min-width: 0; }
+
+        /* חלוקת טור הצד לשני חלקים שווים */
+        .news-section { flex: 1; display: flex; flex-direction: column; overflow: hidden; border-bottom: 4px solid #333; }
+        .telegram-section { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #fff; }
 
         .map-side { flex: 1; background: #000; position: relative; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
 
@@ -72,24 +87,23 @@
             justify-content: center;
             cursor: pointer;
             box-shadow: 0 0 15px rgba(0,0,0,0.7);
-            font-size: 1.2rem;
         }
 
-        .header { background: var(--header-bg); color: white; padding: 12px; text-align: center; margin: 0; border-bottom: 2px solid #111; font-size: 1.1rem; flex-shrink: 0; display: flex; justify-content: center; align-items: center; gap: 15px; }
+        .header { background: var(--header-bg); color: white; padding: 10px; text-align: center; margin: 0; border-bottom: 2px solid #111; font-size: 1rem; flex-shrink: 0; display: flex; justify-content: center; align-items: center; gap: 10px; }
 
         #feed { flex: 1; overflow-y: auto; padding: 15px; background: var(--bg-side); }
-        .news-item { background: var(--item-bg); color: var(--text-main); display: block; text-decoration: none; padding: 12px; border-radius: 8px; margin-bottom: 12px; border-right: 10px solid #ccc; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .news-item { background: var(--item-bg); color: var(--text-main); display: block; text-decoration: none; padding: 10px; border-radius: 8px; margin-bottom: 10px; border-right: 10px solid #ccc; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
         
-        .meta { display: flex; justify-content: space-between; margin-bottom: 5px; }
-        .badge { font-size: 0.75rem; font-weight: bold; padding: 3px 7px; border-radius: 4px; color: white; }
-        .time { font-size: 0.9rem; font-weight: bold; color: #1240dd; }
+        .meta { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .badge { font-size: 0.7rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; color: white; }
+        .time { font-size: 0.85rem; font-weight: bold; color: #1240dd; }
         body.dark-mode .time { color: #5dade2; }
-        .title { font-size: 1rem; line-height: 1.4; font-weight: 600; }
+        .title { font-size: 0.9rem; line-height: 1.3; font-weight: 600; }
 
         iframe { width: 100%; height: 100%; border: none; flex: 1; }
 
         @media (max-width: 900px) {
-            .news-side { width: 100%; height: 45%; min-width: 100%; }
+            .news-side { width: 100%; height: 50%; min-width: 100%; }
         }
     </style>
 </head>
@@ -101,15 +115,22 @@
         <button class="btn-ui" onclick="toggleDark()">🌓 מצב צבע</button>
     </div>
     <div id="clock-container">
-        <div id="clock-gregorian">טוען תאריך...</div>
-        <div id="clock-hebrew">טוען זמן...</div>
+        <div id="clock-gregorian">טוען...</div>
+        <div id="clock-hebrew">טוען...</div>
     </div>
 </div>
 
 <div class="main-layout">
     <div class="news-side" id="newsSide">
-        <h2 class="header">מבזקי חדשות <button class="btn-ui" onclick="fetchNews()">🔄 רענן</button></h2>
-        <div id="feed">טוען מבזקים...</div>
+        <div class="news-section">
+            <h2 class="header">מבזקי חדשות <button class="btn-ui" onclick="fetchNews()">🔄</button></h2>
+            <div id="feed">טוען מבזקים...</div>
+        </div>
+
+        <div class="telegram-section">
+            <h2 class="header" style="background: #0088cc;">📱 ערוץ התרעה חריגה</h2>
+            <iframe src="https://tgwidget.com/channel/v2/Criticalalerts/?theme=dark" style="width:100%; height:100%; border:none;"></iframe>
+        </div>
     </div>
 
     <div class="map-side">
@@ -125,23 +146,14 @@
     function updateClock() {
         try {
             const now = new Date();
-            
-            // תאריך לועזי
-            const gregOptions = { day: '2-digit', month: '2-digit', year: 'numeric' };
-            document.getElementById("clock-gregorian").innerText = now.toLocaleDateString('he-IL', gregOptions);
-            
-            // זמן
             const timeStr = now.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-            
-            // תאריך עברי - שימוש ב-Intl עם הגדרות ספציפיות
+            const gregDate = now.toLocaleDateString("he-IL", { day: '2-digit', month: '2-digit', year: 'numeric' });
             const hebOptions = { day: 'numeric', month: 'long', calendar: 'hebrew' };
             const hebDatePart = new Intl.DateTimeFormat('he-u-ca-hebrew', hebOptions).format(now);
             
-            // תצוגת התשפ"ו קבועה כפי שביקשת
+            document.getElementById("clock-gregorian").innerText = gregDate;
             document.getElementById("clock-hebrew").innerText = hebDatePart + " התשפ\"ו | " + timeStr;
-        } catch (e) { 
-            console.error("Clock Error"); 
-        }
+        } catch (e) {}
     }
 
     function toggleDark() { document.body.classList.toggle("dark-mode"); }
@@ -149,13 +161,8 @@
     function toggleNews() {
         const side = document.getElementById("newsSide");
         const btn = document.getElementById("toggle-btn");
-        if (side.classList.contains("hidden")) {
-            side.classList.remove("hidden");
-            btn.innerText = "▶";
-        } else {
-            side.classList.add("hidden");
-            btn.innerText = "◀";
-        }
+        side.classList.toggle("hidden");
+        btn.innerText = side.classList.contains("hidden") ? "◀" : "▶";
     }
 
     async function fetchWeather() {
@@ -171,27 +178,26 @@
         try {
             const res = await fetch(SCRIPT_URL);
             const data = await res.json();
-            if(!data || data.length === 0) return;
+            if(!data) return;
             
-            let html = "";
-            data.forEach(item => {
+            feedDiv.innerHTML = data.map(item => {
                 const time = new Date(item.pubDate).toLocaleTimeString("he-IL", {hour:"2-digit", minute:"2-digit"});
                 const src = (item.source || "").toLowerCase();
                 let color = "#666", label = "מבזק";
-                
                 if (src.includes("rotter")) { color = "#d35400"; label = "רוטר"; }
                 else if (src.includes("ynet")) { color = "#ed1c24"; label = "Ynet"; }
                 else if (src.includes("inn") || src.includes("7")) { color = "#f39c12"; label = "ערוץ 7"; }
                 
-                html += `
-                    <a href="${item.link}" target="_blank" class="news-item" style="border-right-color: ${color};">
-                        <div class="meta">
-                            <span class="badge" style="background-color: ${color};">${label}</span>
-                            <span class="time">${time}</span>
-                        </div>
-                        <div class="title">${item.title}</div>
-                    </a>`;
-            });
-            feedDiv.innerHTML = html;
-        } catch (e) { 
-            console.error("News Load Error");
+                return `<a href="${item.link}" target="_blank" class="news-item" style="border-right-color: ${color};">
+                    <div class="meta"><span class="badge" style="background-color: ${color};">${label}</span><span class="time">${time}</span></div>
+                    <div class="title">${item.title}</div></a>`;
+            }).join("");
+        } catch (e) { console.error("News Load Error"); }
+    }
+
+    updateClock(); fetchWeather(); fetchNews();
+    setInterval(updateClock, 1000);
+    setInterval(fetchNews, 60000);
+</script>
+</body>
+</html>
