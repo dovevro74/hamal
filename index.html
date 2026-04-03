@@ -20,7 +20,6 @@
             --header-bg: #000000;
         }
 
-        /* מניעת גלילה של כל העמוד - קריטי למחשב Dell */
         body { font-family: system-ui, sans-serif; background: #000; margin: 0; padding: 0; height: 100vh; width: 100vw; display: flex; flex-direction: column; overflow: hidden; color: white; }
         
         .top-bar { 
@@ -117,13 +116,30 @@
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4ncDieZ3xZKsaBVMbXt6vQkyyWaEFeyt4uWlx9JBIdvi5rS4G4w-HUXKx9MjpMCH4/exec";
 
+    // המרת מספר יום לגימטריה (כולל ט"ו וט"ז)
+    function getGematriaDay(num) {
+        const letters = {
+            1:"א'", 2:"ב'", 3:"ג'", 4:"ד'", 5:"ה'", 6:"ו'", 7:"ז'", 8:"ח'", 9:"ט'",
+            10:"י'", 11:'י"א', 12:'י"ב', 13:'י"ג', 14:'י"ד', 15:'ט"ו', 16:'ט"ז', 17:'י"ז', 18:'י"ח', 19:'י"ט',
+            20:"כ'", 21:'כ"א', 22:'כ"ב', 23:'כ"ג', 24:'כ"ד', 25:'כ"ה', 26:'כ"ו', 27:'כ"ז', 28:'כ"ח', 29:'כ"ט', 30:"ל'"
+        };
+        return letters[num] || num;
+    }
+
     function updateClock() {
         try {
             const now = new Date();
             const timeStr = now.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
             const gregDate = now.toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit", year: "numeric" });
-            const hebDayMonth = new Intl.DateTimeFormat("he-u-ca-hebrew", {day:"numeric", month:"long"}).format(now);
-            document.getElementById("clock").innerHTML = `<span style="font-size:0.75rem; color:#888;">${gregDate}</span><br>${hebDayMonth} התשפ"ו | ${timeStr}`;
+            
+            // חילוץ נתוני תאריך עברי מהדפדפן
+            const hebDayNum = parseInt(new Intl.DateTimeFormat("he-u-ca-hebrew", {day:"numeric"}).format(now));
+            const hebMonthName = new Intl.DateTimeFormat("he-u-ca-hebrew", {month:"long"}).format(now);
+            const hebDayGematria = getGematriaDay(hebDayNum);
+
+            document.getElementById("clock").innerHTML = 
+                `<span style="font-size:0.75rem; color:#888;">${gregDate}</span><br>` +
+                `${hebDayGematria} ב${hebMonthName} התשפ"ו | ${timeStr}`;
         } catch (e) { console.error("Clock error"); }
     }
 
@@ -149,7 +165,7 @@
     async function fetchNews() {
         const feed = document.getElementById("feed");
         try {
-            const res = await fetch(SCRIPT_URL);
+            const res = await fetch(SCRIPT_URL + "?t=" + Date.now());
             const data = await res.json();
             if(!data || data.length === 0) return;
             
@@ -167,11 +183,9 @@
         } catch (e) { console.error("News error"); }
     }
 
-    // הפעלה מסודרת
     setInterval(updateClock, 1000);
     setInterval(fetchNews, 60000);
     
-    // הרצה ראשונית
     updateClock();
     fetchWeather();
     fetchNews();
