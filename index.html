@@ -124,4 +124,51 @@
             const gregDate = now.toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit", year: "numeric" });
             const hebDayMonth = new Intl.DateTimeFormat("he-u-ca-hebrew", {day:"numeric", month:"long"}).format(now);
             
-            // הצגת שנה עברית באותיות ותאריך לועזי מע
+            // הצגת שנה עברית באותיות ותאריך לועזי מעל
+            document.getElementById("clock").innerHTML = `<span style="font-size:0.75rem; color:#888;">${gregDate}</span><br>${hebDayMonth} התשפ"ו | ${timeStr}`;
+        } catch (e) { console.error(e); }
+    }
+
+    function toggleDark() { document.body.classList.toggle("dark-mode"); }
+
+    function toggleNews() {
+        const side = document.getElementById("newsSide");
+        const btn = document.getElementById("toggle-btn");
+        side.classList.toggle("hidden");
+        btn.innerHTML = side.classList.contains("hidden") ? "◀" : "▶";
+    }
+
+    async function fetchWeather() {
+        try {
+            const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=32.09&longitude=34.88&current_weather=true");
+            const data = await res.json();
+            document.getElementById("weather").innerHTML = "🌡️ " + Math.round(data.current_weather.temperature) + "°C";
+        } catch (e) { document.getElementById("weather").innerHTML = "ישראל"; }
+    }
+
+    async function fetchNews() {
+        const feed = document.getElementById("feed");
+        try {
+            const res = await fetch(SCRIPT_URL);
+            const data = await res.json();
+            if(!data) return;
+            feed.innerHTML = data.map(item => {
+                const time = new Date(item.pubDate).toLocaleTimeString("he-IL", {hour:"2-digit", minute:"2-digit"});
+                const src = (item.source || "").toLowerCase();
+                let color = "#666", label = "מבזק";
+                if (src.includes("rotter")) { color = "#d35400"; label = "רוטר"; }
+                else if (src.includes("ynet")) { color = "#ed1c24"; label = "Ynet"; }
+                else if (src.includes("inn") || src.includes("7")) { color = "#f39c12"; label = "ערוץ 7"; }
+                return `<a href="${item.link}" target="_blank" class="news-item" style="border-right-color: ${color};">
+                    <div class="meta"><span class="badge" style="background-color: ${color};">${label}</span><span class="time">${time}</span></div>
+                    <div class="title">${item.title}</div></a>`;
+            }).join("");
+        } catch (e) { console.error(e); }
+    }
+
+    setInterval(updateClock, 1000);
+    setInterval(fetchNews, 60000);
+    updateClock(); fetchWeather(); fetchNews();
+</script>
+</body>
+</html>
