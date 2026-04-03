@@ -10,62 +10,93 @@
             --text-main: #1c1e21;
             --item-bg: #ffffff;
             --header-bg: #2c3e50;
+            --top-bar-bg: #111;
         }
 
+        /* מצב לילה */
         body.dark-mode {
             --bg-side: #1a1a1a;
             --text-main: #e4e6eb;
             --item-bg: #242526;
             --header-bg: #000000;
+            --top-bar-bg: #000;
         }
 
-        body { font-family: 'Segoe UI', sans-serif; background: #000; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; color: white; }
+        body { font-family: 'Segoe UI', sans-serif; background: #000; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; color: white; transition: 0.3s; }
         
-        /* סרגל עליון נקי */
-        .top-bar { background: #111; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; font-size: 1rem; z-index: 1000; }
+        /* סרגל עליון */
+        .top-bar { background: var(--top-bar-bg); padding: 8px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; font-size: 0.95rem; z-index: 1000; }
+        .top-left { display: flex; align-items: center; gap: 15px; }
+        .mode-toggle { background: #34495e; color: white; border: 1px solid #777; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
         #weather { color: #3498db; font-weight: bold; }
-        #clock { color: #f1c40f; font-weight: bold; text-align: left; }
+        #clock { color: #f1c40f; font-weight: bold; }
 
-        .main-layout { display: flex; flex: 1; overflow: hidden; width: 100%; }
+        .main-layout { display: flex; flex: 1; overflow: hidden; position: relative; }
         
         /* עמודת מבזקים */
-        .news-side { width: 400px; min-width: 400px; background: var(--bg-side); display: flex; flex-direction: column; border-left: 4px solid #333; transition: 0.3s; }
-        
+        .news-side { width: 420px; min-width: 420px; background: var(--bg-side); display: flex; flex-direction: column; border-left: 4px solid #333; transition: all 0.4s ease-in-out; z-index: 10; }
+        .news-side.hidden { margin-right: -420px; min-width: 0; }
+
         /* עמודת מפה */
-        .map-side { flex: 1; background: #000; position: relative; }
+        .map-side { flex: 1; background: #000; position: relative; z-index: 1; }
+
+        /* כפתור חץ להסתרה */
+        #toggle-btn {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            z-index: 9999;
+            background: #2c3e50;
+            color: white;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
 
         .header { background: var(--header-bg); color: white; padding: 12px; text-align: center; margin: 0; font-size: 1.1rem; border-bottom: 2px solid #111; display: flex; justify-content: center; align-items: center; gap: 10px; }
         .refresh-btn { background: #34495e; color: white; border: 1px solid #eee; padding: 3px 8px; border-radius: 5px; cursor: pointer; font-size: 0.8rem; }
 
-        #feed { flex: 1; overflow-y: auto; padding: 15px; background: var(--bg-side); }
-        .news-item { background: var(--item-bg); color: var(--text-main); display: block; text-decoration: none; padding: 15px; border-radius: 10px; margin-bottom: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); border-right: 10px solid #ccc; transition: 0.2s; }
+        #feed { flex: 1; overflow-y: auto; padding: 15px; }
+        .news-item { background: var(--item-bg); color: var(--text-main); display: block; text-decoration: none; padding: 12px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); border-right: 10px solid #ccc; }
         
-        .meta { display: flex; justify-content: space-between; margin-bottom: 5px; }
-        .badge { font-size: 0.75rem; font-weight: bold; padding: 3px 8px; border-radius: 4px; color: white; }
-        .time { font-size: 0.85rem; font-weight: bold; color: #1240dd; }
+        .meta { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .badge { font-size: 0.7rem; font-weight: bold; padding: 2px 6px; border-radius: 3px; color: white; }
+        .time { font-size: 0.8rem; font-weight: bold; color: #1240dd; }
         body.dark-mode .time { color: #5dade2; }
-        .title { font-size: 1rem; line-height: 1.4; font-weight: 600; display: block; }
+        .title { font-size: 0.95rem; line-height: 1.4; font-weight: 600; display: block; }
 
         @media (max-width: 900px) {
-            .main-layout { flex-direction: column; }
-            .news-side { width: 100%; height: 45vh; min-width: 100%; border-left: none; border-bottom: 4px solid #333; }
+            .news-side { width: 100%; height: 40vh; min-width: 100%; }
+            .news-side.hidden { margin-right: 0; margin-top: -40vh; }
+            #toggle-btn { top: 5px; right: 5px; transform: none; width: 30px; height: 30px; }
         }
     </style>
 </head>
 <body class="dark-mode">
 
 <div class="top-bar">
-    <div id="weather">טוען מזג אוויר...</div>
+    <div class="top-left">
+        <div id="weather">טוען מזג אוויר...</div>
+        <button class="mode-toggle" onclick="toggleDarkMode()">🌓 שנה מצב</button>
+    </div>
     <div id="clock">טוען זמן...</div>
 </div>
 
 <div class="main-layout">
-    <div class="news-side">
+    <div class="news-side" id="newsSide">
         <h2 class="header">מבזקי חדשות <button class="refresh-btn" onclick="fetchNews()">🔄 רענן</button></h2>
         <div id="feed">טוען מבזקים...</div>
     </div>
 
     <div class="map-side">
+        <div id="toggle-btn" onclick="toggleNews()">▶</div>
         <h2 class="header" style="background: #8e44ad;">מפת צבע אדום בזמן אמת</h2>
         <iframe src="https://www.tzevaadom.co.il/" style="width:100%; height:100%; border:none;" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
     </div>
@@ -74,22 +105,75 @@
 <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4ncDieZ3xZKsaBVMbXt6vQkyyWaEFeyt4uWlx9JBIdvi5rS4G4w-HUXKx9MjpMCH4/exec';
     
-    // שעון ותאריך (ללא הקוד שנשפך)
+    // 1. שעון ותאריך עברי (מנגנון בטוח)
     function updateClock() {
         const now = new Date();
         const timeStr = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         
-        // תאריך עברי פשוט דרך Intl (עובד מצוין בדפדפנים מודרניים)
-        const hebrewDate = new Intl.DateTimeFormat('he-IL-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'}).format(now);
-        
-        document.getElementById('clock').innerHTML = hebrewDate + " | " + timeStr;
-        
-        // מצב לילה אוטומטי (18:00 עד 06:00)
-        const hour = now.getHours();
-        if (hour >= 18 || hour < 6) { document.body.classList.add('dark-mode'); } 
-        else { document.body.classList.remove('dark-mode'); }
+        // תאריך עברי רשמי של דפדפנים
+        const hebrewDate = new Intl.DateTimeFormat('he-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'}).format(now);
+        const gregorianDate = now.toLocaleDateString('he-IL', {day:'numeric', month:'numeric'});
+
+        document.getElementById('clock').innerHTML = `${hebrewDate} (${gregorianDate}) | ${timeStr}`;
     }
 
-    // מזג אוויר
+    // 2. שינוי מצב לילה ידני
+    function toggleDarkMode() {
+        document.body.classList.toggle('dark-mode');
+    }
+
+    // 3. הסתרת/הצגת מבזקים
+    function toggleNews() {
+        const newsSide = document.getElementById('newsSide');
+        const btn = document.getElementById('toggle-btn');
+        newsSide.classList.toggle('hidden');
+        btn.innerHTML = newsSide.classList.contains('hidden') ? "◀" : "▶";
+    }
+
+    // 4. מזג אוויר
     async function fetchWeather() {
         try {
+            const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=32.09&longitude=34.88&current_weather=true');
+            const data = await res.json();
+            document.getElementById('weather').innerHTML = `🌡️ ${Math.round(data.current_weather.temperature)}°C`;
+        } catch (e) { document.getElementById('weather').innerHTML = "ישראל"; }
+    }
+
+    // 5. מבזקים
+    async function fetchNews() {
+        try {
+            const res = await fetch(SCRIPT_URL);
+            const data = await res.json();
+            const feed = document.getElementById('feed');
+            feed.innerHTML = data.map(item => {
+                const timeStr = new Date(item.pubDate).toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'});
+                const source = (item.source || "").toLowerCase();
+                let color = "#666", label = "מבזק";
+                if (source.includes('rotter')) { color = "#d35400"; label = "רוטר"; }
+                else if (source.includes('ynet')) { color = "#ed1c24"; label = "Ynet"; }
+                else if (source.includes('inn') || source.includes('7')) { color = "#f39c12"; label = "ערוץ 7"; }
+                return `
+                    <a href="${item.link}" target="_blank" class="news-item" style="border-right-color: ${color};">
+                        <div class="meta">
+                            <span class="badge" style="background-color: ${color};">${label}</span>
+                            <span class="time">${timeStr}</span>
+                        </div>
+                        <span class="title">${item.title}</span>
+                    </a>`;
+            }).join('');
+        } catch (e) { document.getElementById('feed').innerHTML = "טוען..."; }
+    }
+
+    // הגדרה ראשונית לפי שעה (אבל מאפשר שינוי ידני אחר כך)
+    const currentHour = new Date().getHours();
+    if (currentHour >= 18 || currentHour < 6) { document.body.classList.add('dark-mode'); }
+    else { document.body.classList.remove('dark-mode'); }
+
+    setInterval(updateClock, 1000);
+    setInterval(fetchNews, 60000);
+    updateClock();
+    fetchNews();
+    fetchWeather();
+</script>
+</body>
+</html>
