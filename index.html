@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚨 חמ"ל מבצעי סופי</title>
+    <title>🚨 חמ"ל מבצעי מעודכן</title>
     <style>
         :root {
             --bg: #1a1a1a;
@@ -15,7 +15,7 @@
 
         body { font-family: system-ui, sans-serif; background: #000; margin: 0; padding: 0; height: 100vh; color: white; overflow: hidden; display: flex; flex-direction: column; }
         
-        .top-bar { height: 70px; background: #111; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-bottom: 2px solid #333; flex-shrink: 0; }
+        .top-bar { height: 70px; background: #111; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-bottom: 2px solid #444; flex-shrink: 0; }
         #weather { color: var(--accent); font-weight: bold; font-size: 1.1rem; }
         #clock-container { text-align: left; }
         #clock-hebrew { color: #f1c40f; font-weight: bold; font-size: 1.1rem; }
@@ -23,8 +23,7 @@
 
         .main-layout { display: flex; flex: 1; position: relative; overflow: hidden; }
         
-        /* טור מבזקים */
-        .news-side { width: 420px; background: var(--bg); display: flex; flex-direction: column; border-left: 4px solid #333; transition: 0.3s; z-index: 10; position: relative; }
+        .news-side { width: 420px; background: var(--bg); display: flex; flex-direction: column; border-left: 4px solid #333; transition: 0.3s; z-index: 10; }
         .news-side.hidden { margin-right: -420px; }
 
         .section { height: 50%; display: flex; flex-direction: column; overflow: hidden; border-bottom: 2px solid #333; }
@@ -35,25 +34,14 @@
         .meta { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 5px; }
         .badge { padding: 2px 6px; border-radius: 4px; color: white; font-weight: bold; }
         
-        /* טלגרם */
-        .tg-container { flex: 1; position: relative; background: #fff; }
-        .tg-frame { width: 100%; height: 100%; border: none; }
+        .tg-container { flex: 1; background: #fff; overflow: hidden; }
 
-        /* מפה */
         .map-side { flex: 1; position: relative; background: #000; }
         
-        /* כפתור הסתרה - מיקום מתוקן */
         #toggle-btn { 
-            position: absolute; 
-            top: 20px; 
-            right: 10px; 
-            z-index: 1000; 
-            background: #2c3e50; 
-            color: white; 
-            border: 2px solid #fff; 
-            border-radius: 50%; 
-            width: 35px; height: 35px; 
-            cursor: pointer; 
+            position: absolute; top: 15px; right: 15px; z-index: 1000; 
+            background: #2c3e50; color: white; border: 2px solid #fff; 
+            border-radius: 50%; width: 35px; height: 35px; cursor: pointer; 
             display: flex; align-items: center; justify-content: center;
         }
 
@@ -63,7 +51,7 @@
 <body>
 
 <div class="top-bar">
-    <div id="weather">☀️ טוען מזג אוויר...</div>
+    <div id="weather">🌡️ טוען...</div>
     <div id="clock-container">
         <div id="clock-gregorian">--/--/----</div>
         <div id="clock-hebrew">טוען תאריך...</div>
@@ -74,16 +62,15 @@
     <div class="news-side" id="newsSide">
         <div class="section">
             <div class="header">📢 מבזקי חדשות</div>
-            <div id="feed">טוען נתונים...</div>
+            <div id="feed">טוען מבזקים...</div>
         </div>
         <div class="section">
             <div class="header" style="background: #0088cc;">📱 טלגרם: התרעה חריגה</div>
-            <div class="tg-container">
+            <div class="tg-container" id="tg-area">
                 <script async src="https://telegram.org/js/telegram-widget.js?22" 
-                        data-telegram-discussion="Criticalalerts" 
-                        data-comments-limit="5" 
-                        data-dark="1" 
-                        data-width="100%"></script>
+                        data-telegram-channel="Criticalalerts" 
+                        data-limit="5" 
+                        data-dark="1"></script>
             </div>
         </div>
     </div>
@@ -97,12 +84,10 @@
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4ncDieZ3xZKsaBVMbXt6vQkyyWaEFeyt4uWlx9JBIdvi5rS4G4w-HUXKx9MjpMCH4/exec";
 
-    // פונקציה להמרת מספר לאותיות גימטריות (עבור היום והשנה)
-    function toGematria(num) {
-        if (num >= 5000) num -= 5000;
-        const letters = {
-            400: 'ת', 300: 'ש', 200: 'ר', 100: 'ק', 90: 'צ', 80: 'פ', 70: 'ע', 60: 'ס', 50: 'נ', 40: 'מ', 30: 'ל', 20: 'כ', 10: 'י', 9: 'ט', 8: 'ח', 7: 'ז', 6: 'ו', 5: 'ה', 4: 'ד', 3: 'ג', 2: 'ב', 1: 'א'
-        };
+    // המרה לגימטריה - מתוקן למניעת כפילויות בשנה
+    function toGematria(num, isYear = false) {
+        if (isYear && num >= 5000) num -= 5000;
+        const letters = { 400:'ת', 300:'ש', 200:'ר', 100:'ק', 90:'צ', 80:'פ', 70:'ע', 60:'ס', 50:'נ', 40:'מ', 30:'ל', 20:'כ', 10:'י', 9:'ט', 8:'ח', 7:'ז', 6:'ו', 5:'ה', 4:'ד', 3:'ג', 2:'ב', 1:'א' };
         let result = '';
         if (num === 15) return 'טו';
         if (num === 16) return 'טז';
@@ -120,13 +105,13 @@
         const hebDate = new Intl.DateTimeFormat('he-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'}).format(now);
         const parts = hebDate.split(' ');
         
-        // חלקים: [0]=יום, [1]=חודש, [2]=שנה
-        const dayGematria = toGematria(parseInt(parts[0]));
-        const yearGematria = "התש" + toGematria(parseInt(parts[2]));
-        const finalHeb = `${dayGematria} ${parts[1]} ${yearGematria}`;
+        const dayG = toGematria(parseInt(parts[0]));
+        // הסרת ה-ת' וה-ש' שהפונקציה מייצרת אם הן כבר קיימות בקידומת
+        const yearLetters = toGematria(parseInt(parts[2]), true);
+        const yearG = "הת" + yearLetters;
 
         document.getElementById("clock-gregorian").innerText = now.toLocaleDateString('he-IL');
-        document.getElementById("clock-hebrew").innerText = finalHeb + " | " + now.toLocaleTimeString('he-IL');
+        document.getElementById("clock-hebrew").innerText = `${dayG} ${parts[1]} ${yearG} | ${now.toLocaleTimeString('he-IL')}`;
     }
 
     async function fetchWeather() {
