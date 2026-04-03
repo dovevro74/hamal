@@ -95,10 +95,10 @@
     async function fetchNews() {
         try {
             const res = await fetch(SCRIPT_URL + "?t=" + Date.now());
-            let data = await res.json();
-            
-            // מיון כפול לוודא שהכי חדש למעלה
-            data.sort((a, b) => b.timestamp - a.timestamp);
+	    let data = await res.json();
+    
+	    // מיון נוסף בצד הלקוח ליתר ביטחון
+	    data.sort((a, b) => b.timestamp - a.timestamp);
 
             document.getElementById("feed").innerHTML = data.map(item => {
                 const time = new Date(item.timestamp).toLocaleTimeString("he-IL", {hour: "2-digit", minute: "2-digit"});
