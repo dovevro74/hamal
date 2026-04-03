@@ -2,43 +2,36 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚨 חמ"ל מבצעי - רוטר מתוקן</title>
+    <title>🚨 חמ"ל מבצעי מעודכן</title>
     <style>
-        :root { --bg: #1a1a1a; --panel: #242526; --text: #e4e6eb; --rotter: #d35400; }
-        body { font-family: system-ui, sans-serif; background: #000; margin: 0; padding: 0; height: 100vh; color: white; overflow: hidden; display: flex; flex-direction: column; }
-        
-        .top-bar { height: 70px; background: #111; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-bottom: 2px solid #444; flex-shrink: 0; }
-        #clock-hebrew { color: #f1c40f; font-weight: bold; font-size: 1.1rem; }
-
+        :root { --bg: #1a1a1a; --panel: #242526; --text: #e4e6eb; }
+        body { font-family: system-ui, sans-serif; background: #000; margin: 0; color: white; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+        .top-bar { height: 70px; background: #111; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-bottom: 2px solid #444; }
+        #weather { color: #3498db; font-weight: bold; font-size: 1.2rem; }
         .main-layout { display: flex; flex: 1; overflow: hidden; }
         .news-side { width: 450px; background: var(--bg); display: flex; flex-direction: column; border-left: 4px solid #333; }
-        .header { background: #000; padding: 15px; text-align: center; font-size: 1.1rem; border-bottom: 2px solid #444; font-weight: bold; }
-
         #feed { flex: 1; overflow-y: auto; padding: 15px; }
-        .news-item { background: var(--panel); padding: 12px; border-radius: 8px; margin-bottom: 10px; text-decoration: none; color: var(--text); display: block; border-right: 6px solid #666; }
+        .news-item { background: var(--panel); padding: 12px; border-radius: 8px; margin-bottom: 10px; border-right: 6px solid #666; text-decoration: none; color: var(--text); display: block; }
         .badge { padding: 2px 8px; border-radius: 4px; color: white; font-weight: bold; font-size: 0.85rem; }
-        
-        .map-side { flex: 1; background: #000; }
         iframe { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 <body>
 
 <div class="top-bar">
-    <div id="weather">🌡️ טוען...</div>
-    <div id="clock-container">
+    <div id="weather">🌡️ טוען טמפרטורה...</div>
+    <div id="clock-container" style="text-align: left;">
         <div id="clock-gregorian" style="color:#888; font-size:0.8rem"></div>
-        <div id="clock-hebrew"></div>
+        <div id="clock-hebrew" style="color: #f1c40f; font-weight: bold;"></div>
     </div>
 </div>
 
 <div class="main-layout">
     <div class="news-side">
-        <div class="header">📢 מבזקי חדשות</div>
-        <div id="feed">ממתין לנתונים מרוטר...</div>
+        <div style="background:#000; padding:15px; text-align:center; font-weight:bold; border-bottom:1px solid #444;">📢 מבזקים בזמן אמת</div>
+        <div id="feed">טוען מבזקים...</div>
     </div>
-    <div class="map-side">
+    <div style="flex:1;">
         <iframe src="https://www.tzevaadom.co.il/"></iframe>
     </div>
 </div>
@@ -46,42 +39,33 @@
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4ncDieZ3xZKsaBVMbXt6vQkyyWaEFeyt4uWlx9JBIdvi5rS4G4w-HUXKx9MjpMCH4/exec";
 
-    function toGematria(num) {
-        const letters = { 400:'ת', 300:'ש', 200:'ר', 100:'ק', 90:'צ', 80:'פ', 70:'ע', 60:'ס', 50:'נ', 40:'מ', 30:'ל', 20:'כ', 10:'י', 9:'ט', 8:'ח', 7:'ז', 6:'ו', 5:'ה', 4:'ד', 3:'ג', 2:'ב', 1:'א' };
-        let result = '';
-        if (num === 15) return 'טו'; if (num === 16) return 'טז';
-        for (let val of Object.keys(letters).sort((a, b) => b - a)) {
-            while (num >= val) { result += letters[val]; num -= val; }
-        }
-        return result;
-    }
-
-    function updateClock() {
-        const now = new Date();
-        const hebDate = new Intl.DateTimeFormat('he-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'}).format(now);
-        const parts = hebDate.split(' ');
-        const yearG = "התש" + toGematria(parseInt(parts[2]) % 100);
-        document.getElementById("clock-gregorian").innerText = now.toLocaleDateString('he-IL');
-        document.getElementById("clock-hebrew").innerText = `${toGematria(parseInt(parts[0]))} ${parts[1]} ${yearG} | ${now.toLocaleTimeString('he-IL')}`;
+    async function fetchWeather() {
+        try {
+            const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=32.08&longitude=34.78&current_weather=true");
+            const data = await res.json();
+            document.getElementById("weather").innerText = `🌡️ תל אביב: ${Math.round(data.current_weather.temperature)}°C`;
+        } catch (e) { document.getElementById("weather").innerText = "🌡️ מזג אוויר לא זמין"; }
     }
 
     async function fetchNews() {
         try {
-            const response = await fetch(SCRIPT_URL + "?nocache=" + Date.now());
-            const data = await response.json();
-            if (!data || data.length === 0) return;
+            const res = await fetch(SCRIPT_URL + "?t=" + Date.now());
+            const data = await res.json();
+            if (!data) return;
 
             document.getElementById("feed").innerHTML = data.map(item => {
                 const time = new Date(item.pubDate).toLocaleTimeString("he-IL", {hour: "2-digit", minute: "2-digit"});
-                const link = (item.link || "").toLowerCase();
-                const source = (item.source || "").toLowerCase();
+                const src = (item.source || "").toLowerCase();
+                const title = (item.title || "").toLowerCase();
 
                 let color = "#666", label = "מבזק";
-
-                // זיהוי רוטר לפי הכתובת החדשה והמקור
-                if (link.includes("rotter.net") || source.includes("רוטר") || source.includes("rotter")) {
+                
+                // תיקון זיהוי ערוץ 7 ורוטר
+                if (src.includes("רוטר") || src.includes("rotter") || title.includes("רוטר")) {
                     color = "#d35400"; label = "רוטר";
-                } else if (link.includes("ynet")) {
+                } else if (src.includes("7") || src.includes("ערוץ") || src.includes("inn")) {
+                    color = "#ff8c00"; label = "ערוץ 7";
+                } else if (src.includes("ynet")) {
                     color = "#ed1c24"; label = "Ynet";
                 }
 
@@ -94,13 +78,21 @@
                         <div>${item.title}</div>
                     </a>`;
             }).join("");
-        } catch (e) { console.error(e); }
+        } catch (e) {}
     }
 
-    updateClock();
-    fetchNews();
+    // פונקציות שעון ותאריך עברי (מקוצרות)
+    function updateClock() {
+        const now = new Date();
+        const hebDate = new Intl.DateTimeFormat('he-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'}).format(now);
+        document.getElementById("clock-gregorian").innerText = now.toLocaleDateString('he-IL');
+        document.getElementById("clock-hebrew").innerText = hebDate + " | " + now.toLocaleTimeString('he-IL');
+    }
+
     setInterval(updateClock, 1000);
-    setInterval(fetchNews, 45000);
+    setInterval(fetchNews, 60000);
+    setInterval(fetchWeather, 1800000);
+    updateClock(); fetchNews(); fetchWeather();
 </script>
 </body>
 </html>
