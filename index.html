@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚨 חמ"ל מבצעי מעודכן</title>
+    <title>🚨 חמ"ל מבצעי - גרסת תיקון</title>
     <style>
         :root {
             --bg: #1a1a1a;
@@ -31,11 +31,9 @@
 
         #feed { flex: 1; overflow-y: auto; padding: 10px; }
         .news-item { background: var(--panel); padding: 12px; border-radius: 8px; margin-bottom: 10px; border-right: 6px solid #666; text-decoration: none; color: var(--text); display: block; }
-        .meta { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 5px; }
-        .badge { padding: 2px 6px; border-radius: 4px; color: white; font-weight: bold; }
         
-        .tg-container { flex: 1; background: #fff; overflow: hidden; position: relative; }
-        .tg-iframe { width: 100%; height: 100%; border: none; }
+        /* טלגרם - שימוש ב-Widget חיצוני יציב */
+        .tg-container { flex: 1; background: #fff; overflow: hidden; }
 
         .map-side { flex: 1; position: relative; background: #000; }
         
@@ -68,13 +66,13 @@
         <div class="section">
             <div class="header" style="background: #0088cc;">📱 טלגרם: התרעה חריגה</div>
             <div class="tg-container">
-                <iframe class="tg-iframe" src="https://telemetr.io/en/channels/1335439708-Criticalalerts/embed"></iframe>
+                <iframe src="https://widget.rss.app/v1/wall/tp8p1AByG09qA1tN" frameborder="0" style="width:100%; height:100%;"></iframe>
             </div>
         </div>
     </div>
 
     <div class="map-side">
-        <button id="toggle-btn" onclick="toggleNews()">◀</button>
+        <button id="toggle-btn" onclick="toggleNews()">▶</button>
         <iframe src="https://www.tzevaadom.co.il/"></iframe>
     </div>
 </div>
@@ -82,8 +80,8 @@
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4ncDieZ3xZKsaBVMbXt6vQkyyWaEFeyt4uWlx9JBIdvi5rS4G4w-HUXKx9MjpMCH4/exec";
 
+    // פונקציית גימטריה נקייה לחלוטין
     function toGematria(num) {
-        if (num >= 5000) num -= 5000;
         const letters = { 400:'ת', 300:'ש', 200:'ר', 100:'ק', 90:'צ', 80:'פ', 70:'ע', 60:'ס', 50:'נ', 40:'מ', 30:'ל', 20:'כ', 10:'י', 9:'ט', 8:'ח', 7:'ז', 6:'ו', 5:'ה', 4:'ד', 3:'ג', 2:'ב', 1:'א' };
         let result = '';
         if (num === 15) return 'טו';
@@ -103,9 +101,11 @@
         const parts = hebDate.split(' ');
         
         const dayG = toGematria(parseInt(parts[0]));
-        // חישוב שנה מדויק: לוקחים רק את עשרות והיחידות מהגימטריה ומוסיפים התש
-        const yearNum = parseInt(parts[2]) % 1000; 
-        const yearG = "התש" + toGematria(yearNum % 100);
+        
+        // תיקון השנה: לוקחים את השנה (למשל 5786), מורידים 5000, נשאר 786. 
+        // המרה לגימטריה של 786 תיתן תשפ"ו. מוסיפים ה' בהתחלה.
+        const yearNum = parseInt(parts[2]) - 5000;
+        const yearG = "ה" + toGematria(yearNum);
 
         document.getElementById("clock-gregorian").innerText = now.toLocaleDateString('he-IL');
         document.getElementById("clock-hebrew").innerText = `${dayG} ${parts[1]} ${yearG} | ${now.toLocaleTimeString('he-IL')}`;
@@ -116,14 +116,15 @@
             const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=32.08&longitude=34.78&current_weather=true");
             const data = await res.json();
             document.getElementById("weather").innerText = `🌡️ ${Math.round(data.current_weather.temperature)}°C`;
-        } catch(e) { document.getElementById("weather").innerText = "ישראל"; }
+        } catch(e) {}
     }
 
     function toggleNews() {
         const side = document.getElementById("newsSide");
         const btn = document.getElementById("toggle-btn");
-        side.classList.toggle("hidden");
-        btn.innerText = side.classList.contains("hidden") ? "▶" : "◀";
+        const isHidden = side.classList.toggle("hidden");
+        // כיוון החץ: אם מוסתר (Hidden) יציג חץ שמאלה לפתיחה, אם מוצג יציג חץ ימינה לסגירה
+        btn.innerText = isHidden ? "◀" : "▶";
     }
 
     async function fetchNews() {
@@ -137,7 +138,7 @@
                 let color = "#666", label = "מבזק";
                 if (src.includes("rotter")) { color = "#d35400"; label = "רוטר"; }
                 else if (src.includes("ynet")) { color = "#ed1c24"; label = "Ynet"; }
-                return `<a href="${item.link}" target="_blank" class="news-item" style="border-right-color: ${color}"><div class="meta"><span class="badge" style="background:${color}">${label}</span><span style="color:#5dade2">${time}</span></div><div class="title">${item.title}</div></a>`;
+                return `<a href="${item.link}" target="_blank" class="news-item" style="border-right-color: ${color}"><div class="meta"><span class="badge" style="background:${color}">${label}</span><span style="color:#5dade2; font-weight:bold;">${time}</span></div><div class="title" style="font-size:0.95rem;">${item.title}</div></a>`;
             }).join("");
         } catch (e) {}
     }
