@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚨 חמ"ל מבצעי - גרסה מתוקנת</title>
+    <title>🚨 חמ"ל מבצעי - גרסה יציבה</title>
     <style>
         :root {
             --bg: #1a1a1a;
@@ -34,8 +34,8 @@
         .meta { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 5px; }
         .badge { padding: 2px 6px; border-radius: 4px; color: white; font-weight: bold; }
         
-        /* טלגרם - שימוש בווידג'ט הרשמי */
-        .tg-container { flex: 1; background: #fff; overflow-y: auto; padding: 5px; }
+        /* טלגרם - פתרון יציב */
+        .tg-container { flex: 1; background: #1a1a1a; overflow: hidden; border: none; }
 
         .map-side { flex: 1; position: relative; background: #000; }
         
@@ -53,7 +53,7 @@
 <body>
 
 <div class="top-bar">
-    <div id="weather">🌡️ 20°C</div>
+    <div id="weather">🌡️ טוען...</div>
     <div id="clock-container">
         <div id="clock-gregorian">--/--/----</div>
         <div id="clock-hebrew">טוען תאריך...</div>
@@ -63,19 +63,13 @@
 <div class="main-layout">
     <div class="news-side" id="newsSide">
         <div class="section">
-            <div class="header">📢 מבזקי חדשות (רוטר / Ynet / ערוץ 7)</div>
-            <div id="feed">טוען נתונים...</div>
+            <div class="header">📢 מבזקי חדשות</div>
+            <div id="feed">טוען מבזקים...</div>
         </div>
         <div class="section">
             <div class="header" style="background: #0088cc;">📱 טלגרם: התרעה חריגה</div>
             <div class="tg-container">
-                <script async src="https://telegram.org/js/telegram-widget.js?22" 
-                        data-telegram-post="Criticalalerts/10" 
-                        data-width="100%" 
-                        data-userpic="false"></script>
-                <div style="text-align: center; margin-top: 10px;">
-                    <a href="https://t.me/s/Criticalalerts" target="_blank" style="color: #0088cc; font-size: 0.8rem; text-decoration: none;">לצפייה בערוץ המלא לחץ כאן ↗</a>
-                </div>
+                <iframe src="https://t.me/s/Criticalalerts" class="tg-iframe"></iframe>
             </div>
         </div>
     </div>
@@ -108,14 +102,19 @@
         const hebDate = new Intl.DateTimeFormat('he-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'}).format(now);
         const parts = hebDate.split(' ');
         const dayG = toGematria(parseInt(parts[0]));
-        
-        // תיקון שנה: לוקחים 5786 -> 786 -> תשפ"ו. מוסיפים ה' -> התשפ"ו.
-        const yearFull = parseInt(parts[2]);
-        const yearNum = yearFull > 5000 ? yearFull - 5000 : yearFull;
-        const yearG = "ה" + toGematria(yearNum);
+        const yearNum = parseInt(parts[2]) % 1000; 
+        const yearG = "התש" + toGematria(yearNum % 100);
 
         document.getElementById("clock-gregorian").innerText = now.toLocaleDateString('he-IL');
         document.getElementById("clock-hebrew").innerText = `${dayG} ${parts[1]} ${yearG} | ${now.toLocaleTimeString('he-IL')}`;
+    }
+
+    async function fetchWeather() {
+        try {
+            const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=32.08&longitude=34.78&current_weather=true");
+            const data = await res.json();
+            document.getElementById("weather").innerText = `🌡️ ${Math.round(data.current_weather.temperature)}°C`;
+        } catch(e) {}
     }
 
     function toggleNews() {
@@ -135,8 +134,9 @@
                 const src = (item.source || "").toLowerCase();
                 let color = "#666", label = "מבזק";
                 
-                if (src.includes("rotter")) { color = "#d35400"; label = "רוטר"; }
-                else if (src.includes("7") || src.includes("inn")) { color = "#ff8c00"; label = "ערוץ 7"; }
+                // זיהוי מקורות מורחב
+                if (src.includes("rotter") || src.includes("רוטר")) { color = "#d35400"; label = "רוטר"; }
+                else if (src.includes("7") || src.includes("inn") || src.includes("ערוץ")) { color = "#ff8c00"; label = "ערוץ 7"; }
                 else if (src.includes("ynet")) { color = "#ed1c24"; label = "Ynet"; }
                 
                 return `<a href="${item.link}" target="_blank" class="news-item" style="border-right-color: ${color}">
@@ -148,6 +148,7 @@
     }
 
     updateClock();
+    fetchWeather();
     fetchNews();
     setInterval(updateClock, 1000);
     setInterval(fetchNews, 60000);
