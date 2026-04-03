@@ -2,38 +2,37 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>🚨 חמ"ל מבצעי מעודכן</title>
+    <title>🚨 חמ"ל מבצעי - גרסה מתוקנת</title>
     <style>
-        :root { --bg: #1a1a1a; --panel: #242526; --text: #e4e6eb; }
-        body { font-family: system-ui, sans-serif; background: #000; margin: 0; color: white; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
-        .top-bar { height: 70px; background: #111; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-bottom: 2px solid #444; }
-        #weather { color: #3498db; font-weight: bold; font-size: 1.2rem; }
+        :root { --bg: #000; --panel: #1c1c1e; --text: #fff; --rotter: #d35400; --ynet: #ed1c24; --inn: #ff8c00; }
+        body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        .top-bar { height: 65px; background: #111; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-bottom: 2px solid #333; }
+        #weather { font-weight: bold; color: #0a84ff; }
         .main-layout { display: flex; flex: 1; overflow: hidden; }
-        .news-side { width: 450px; background: var(--bg); display: flex; flex-direction: column; border-left: 4px solid #333; }
-        #feed { flex: 1; overflow-y: auto; padding: 15px; }
-        .news-item { background: var(--panel); padding: 12px; border-radius: 8px; margin-bottom: 10px; border-right: 6px solid #666; text-decoration: none; color: var(--text); display: block; }
-        .badge { padding: 2px 8px; border-radius: 4px; color: white; font-weight: bold; font-size: 0.85rem; }
+        .news-side { width: 420px; background: #121212; display: flex; flex-direction: column; border-left: 3px solid #333; }
+        #feed { flex: 1; overflow-y: auto; padding: 10px; }
+        .news-item { background: var(--panel); margin-bottom: 8px; padding: 12px; border-radius: 8px; text-decoration: none; color: inherit; display: block; border-right: 5px solid #444; }
+        .item-meta { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.8rem; }
+        .badge { padding: 2px 6px; border-radius: 4px; color: #fff; font-weight: bold; }
         iframe { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 <body>
 
 <div class="top-bar">
-    <div id="weather">🌡️ טוען טמפרטורה...</div>
-    <div id="clock-container" style="text-align: left;">
-        <div id="clock-gregorian" style="color:#888; font-size:0.8rem"></div>
-        <div id="clock-hebrew" style="color: #f1c40f; font-weight: bold;"></div>
+    <div id="weather">🌡️ טוען מזג אוויר...</div>
+    <div style="text-align: left;">
+        <div id="clock-hebrew" style="color: #ffd60a; font-weight: bold;"></div>
+        <div id="clock-gregorian" style="color: #888; font-size: 0.8rem;"></div>
     </div>
 </div>
 
 <div class="main-layout">
     <div class="news-side">
-        <div style="background:#000; padding:15px; text-align:center; font-weight:bold; border-bottom:1px solid #444;">📢 מבזקים בזמן אמת</div>
-        <div id="feed">טוען מבזקים...</div>
+        <div style="padding:15px; background:#000; text-align:center; font-weight:bold; border-bottom:1px solid #333;">📢 מבזקים לפי זמן (רוטר/Ynet/7)</div>
+        <div id="feed">טוען...</div>
     </div>
-    <div style="flex:1;">
-        <iframe src="https://www.tzevaadom.co.il/"></iframe>
-    </div>
+    <div style="flex:1;"><iframe src="https://www.tzevaadom.co.il/"></iframe></div>
 </div>
 
 <script>
@@ -56,42 +55,34 @@
             document.getElementById("feed").innerHTML = data.map(item => {
                 const time = new Date(item.pubDate).toLocaleTimeString("he-IL", {hour: "2-digit", minute: "2-digit"});
                 const src = (item.source || "").toLowerCase();
-                const title = (item.title || "").toLowerCase();
-
-                let color = "#666", label = "מבזק";
+                const link = (item.link || "").toLowerCase();
                 
-                // תיקון זיהוי ערוץ 7 ורוטר
-                if (src.includes("רוטר") || src.includes("rotter") || title.includes("רוטר")) {
-                    color = "#d35400"; label = "רוטר";
-                } else if (src.includes("7") || src.includes("ערוץ") || src.includes("inn")) {
-                    color = "#ff8c00"; label = "ערוץ 7";
-                } else if (src.includes("ynet")) {
-                    color = "#ed1c24"; label = "Ynet";
-                }
+                let color = "#666", label = "מבזק";
+                if (src.includes("רוטר") || link.includes("rotter")) { color = "var(--rotter)"; label = "רוטר"; }
+                else if (src.includes("7") || link.includes("inn")) { color = "var(--inn)"; label = "ערוץ 7"; }
+                else if (src.includes("ynet")) { color = "var(--ynet)"; label = "Ynet"; }
 
                 return `
                     <a href="${item.link}" target="_blank" class="news-item" style="border-right-color: ${color}">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                        <div class="item-meta">
                             <span class="badge" style="background:${color}">${label}</span>
-                            <span style="color:#5dade2; font-weight:bold;">${time}</span>
+                            <span style="color:#0a84ff; font-weight:bold;">${time}</span>
                         </div>
-                        <div>${item.title}</div>
+                        <div style="font-size:0.95rem;">${item.title}</div>
                     </a>`;
             }).join("");
         } catch (e) {}
     }
 
-    // פונקציות שעון ותאריך עברי (מקוצרות)
     function updateClock() {
         const now = new Date();
         const hebDate = new Intl.DateTimeFormat('he-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'}).format(now);
-        document.getElementById("clock-gregorian").innerText = now.toLocaleDateString('he-IL');
-        document.getElementById("clock-hebrew").innerText = hebDate + " | " + now.toLocaleTimeString('he-IL');
+        document.getElementById("clock-gregorian").innerText = now.toLocaleDateString('he-IL') + " | " + now.toLocaleTimeString('he-IL');
+        document.getElementById("clock-hebrew").innerText = hebDate;
     }
 
     setInterval(updateClock, 1000);
-    setInterval(fetchNews, 60000);
-    setInterval(fetchWeather, 1800000);
+    setInterval(fetchNews, 45000);
     updateClock(); fetchNews(); fetchWeather();
 </script>
 </body>
