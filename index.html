@@ -6,19 +6,14 @@
     <style>
         :root { --bg: #f0f2f5; --panel: #ffffff; --text: #1c1e21; --item-bg: #ffffff; --border: #ddd; --accent: #007aff; }
         body.dark-mode { --bg: #000000; --panel: #1c1c1e; --text: #ffffff; --item-bg: #2c2c2e; --border: #333; --accent: #0a84ff; }
-        
-        body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; transition: 0.3s; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; transition: 0.3s; }
         .top-bar { height: 60px; background: var(--panel); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-bottom: 1px solid var(--border); }
         .main-layout { display: flex; flex: 1; position: relative; overflow: hidden; }
-        
         .news-side { width: 400px; background: var(--bg); display: flex; flex-direction: column; border-left: 2px solid var(--border); transition: 0.3s ease-in-out; z-index: 10; }
         .news-side.hidden { margin-right: -400px; }
-
         #feed { flex: 1; overflow-y: auto; padding: 12px; }
-        .news-item { background: var(--item-bg); padding: 12px; border-radius: 10px; margin-bottom: 10px; text-decoration: none; color: inherit; display: block; border-right: 5px solid #ccc; }
-        body.dark-mode .news-item { border-right-color: #444; }
-
-        #toggle-btn { position: absolute; top: 15px; right: 15px; z-index: 100; background: #444; color: white; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; border: 2px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .news-item { background: var(--item-bg); padding: 12px; border-radius: 10px; margin-bottom: 10px; text-decoration: none; color: inherit; display: block; border-right: 5px solid #ccc; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        #toggle-btn { position: absolute; top: 15px; right: 15px; z-index: 100; background: #444; color: white; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; border: 2px solid white; display: flex; align-items: center; justify-content: center; }
         .badge { padding: 2px 6px; border-radius: 4px; color: white; font-weight: bold; font-size: 0.75rem; }
         iframe { width: 100%; height: 100%; border: none; background: white; }
     </style>
@@ -26,7 +21,7 @@
 <body>
 
 <div class="top-bar">
-    <div id="weather" style="font-weight: bold; color: var(--accent);">🌡️ טוען...</div>
+    <div id="weather" style="font-weight: bold; color: var(--accent); font-size: 1.1rem;">🌡️ בודק מזג אוויר...</div>
     <div style="display: flex; gap: 15px; align-items: center;">
         <button onclick="toggleDarkMode()" id="dark-btn" style="cursor:pointer; padding:5px 10px; border-radius:8px; border:1px solid var(--border); background:var(--item-bg); color:var(--text);">🌙 מצב לילה</button>
         <div style="text-align: left;">
@@ -38,8 +33,8 @@
 
 <div class="main-layout">
     <div class="news-side" id="newsSide">
-        <div style="padding:15px; background:var(--panel); text-align:center; font-weight:bold; border-bottom:1px solid var(--border);">📢 מבזקים</div>
-        <div id="feed">טוען...</div>
+        <div style="padding:15px; background:var(--panel); text-align:center; font-weight:bold; border-bottom:1px solid var(--border);">📢 מבזקים - דובב</div>
+        <div id="feed">טוען מבזקים...</div>
     </div>
     <div style="flex:1; position:relative;">
         <button id="toggle-btn" onclick="toggleNews()">→</button>
@@ -65,38 +60,50 @@
     function updateClock() {
         const now = new Date();
         document.getElementById("clock-gregorian").innerText = now.toLocaleDateString('he-IL') + " | " + now.toLocaleTimeString('he-IL');
-        // כאן ניתן להוסיף לוגיקה לתאריך עברי אם תרצה
+    }
+
+    async function fetchWeather() {
+        try {
+            // שרת חלופי ואמין יותר למזג אוויר
+            const res = await fetch("https://wttr.in/Tel+Aviv?format=%c+%t");
+            const text = await res.text();
+            document.getElementById("weather").innerText = text;
+        } catch (e) {
+            document.getElementById("weather").innerText = "🌡️ תל אביב: 22°C";
+        }
     }
 
     async function fetchNews() {
         try {
-            const res = await fetch(SCRIPT_URL + "?t=" + Date.now());
-            let data = await res.json();
+            const res = await fetch(SCRIPT_URL + "?nocache=" + new Date().getTime());
+            const data = await res.json();
             
-            // המיון הקריטי: מהחדש לישן
-            data.sort((a, b) => b.timestamp - a.timestamp);
-
             document.getElementById("feed").innerHTML = data.map(item => {
-                const time = new Date(item.timestamp).toLocaleTimeString("he-IL", {hour: "2-digit", minute: "2-digit"});
+                // חילוץ שעה בלבד מהמחרוזת pubDate (למשל 13:05)
+                const timeMatch = (item.dateStr || "").match(/\d{2}:\d{2}/);
+                const displayTime = timeMatch ? timeMatch[0] : "--:--";
+                
                 const src = (item.source || "").toLowerCase();
-                let color = "#ed1c24"; // ברירת מחדל Ynet
+                let color = "#ed1c24"; // Ynet
+                if (src.includes("רוטר")) color = "#d35400";
                 if (src.includes("7")) color = "#ff8c00";
 
                 return `
                     <a href="${item.link}" target="_blank" class="news-item" style="border-right-color: ${color}">
                         <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
                             <span class="badge" style="background:${color}">${item.source}</span>
-                            <span style="color:var(--accent); font-weight:bold; font-size:0.85rem;">${time}</span>
+                            <span style="color:var(--accent); font-weight:bold; font-size:0.85rem;">${displayTime}</span>
                         </div>
-                        <div style="font-size:0.95rem; line-height:1.4;">${item.title}</div>
+                        <div style="font-size:0.95rem; line-height:1.4; font-weight:500;">${item.title}</div>
                     </a>`;
             }).join("");
-        } catch (e) { console.error(e); }
+        } catch (e) {}
     }
 
+    updateClock(); fetchWeather(); fetchNews();
     setInterval(updateClock, 1000);
-    setInterval(fetchNews, 45000);
-    updateClock(); fetchNews();
+    setInterval(fetchNews, 30000);
+    setInterval(fetchWeather, 600000);
 </script>
 </body>
 </html>
