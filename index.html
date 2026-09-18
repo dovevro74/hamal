@@ -180,18 +180,15 @@
         }
     }
 
-    // משיכת זמני כניסת ויציאת שבת לתל אביב וירושלים
     async function fetchShabbat() {
         try {
             const timeFormat = (timeStr) => timeStr ? new Date(timeStr).toLocaleTimeString("he-IL", {hour:"2-digit", minute:"2-digit"}) : "--:--";
 
-            // ירושלים (ID: 281184)
             const resJlm = await fetch("https://www.hebcal.com/shabbat?cfg=json&geonameid=281184&m=50");
             const dataJlm = await resJlm.json();
             const jlmIn = dataJlm.items.find(i => i.category === "candles");
             const jlmOut = dataJlm.items.find(i => i.category === "havdalah");
 
-            // תל אביב (ID: 293397)
             const resTav = await fetch("https://www.hebcal.com/shabbat?cfg=json&geonameid=293397&m=50");
             const dataTav = await resTav.json();
             const tavIn = dataTav.items.find(i => i.category === "candles");
@@ -226,7 +223,7 @@
 
             document.getElementById("zmanim").innerHTML = 
                 `📖 <b>${parshaName}</b><br>` +
-                `🌅 זריחה: ${sunrise} | 🌇 שקיעה: ${sunset} | ✨ צאת: ${tzait}`;
+                `🌅 זריחה: ${sunrise} | 🌇 שקיעה: ${sunset} | ✨ צאת הכוכבים: ${tzait}`;
         } catch (e) {
             document.getElementById("zmanim").innerHTML = "זמני היום לא זמינים";
         }
