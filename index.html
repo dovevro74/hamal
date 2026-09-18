@@ -164,25 +164,24 @@
         } catch (e) { document.getElementById("weather").innerHTML = "ישראל"; }
     }
 
-    // משיכת זמני היום, פרשת שבוע ושקיעה/זריחה מה-API החופשי של Hebcal
+    // משיכת זמני היום, פרשת השבוע, זריחה, שקיעה וצאת הכוכבים
     async function fetchZmanim() {
         try {
-            // טעינת פרשת השבוע
-            const parshaRes = await fetch("https://www.hebcal.com/hebcal?v=1&cfg=json&s=on&i=on&year=now");
+            const parshaRes = await fetch("https://www.hebcal.com/hebcal?v=1&cfg=json&s=on&i=on&start=now&end=now");
             const parshaData = await parshaRes.json();
-            const parshaItem = parshaData.items.find(i => i.category === "parashat");
+            const parshaItem = parshaData.items ? parshaData.items.find(i => i.category === "parashat") : null;
             const parshaName = parshaItem ? parshaItem.hebrew : "";
 
-            // טעינת זמני היום (זריחה ושקיעה למרכז הארץ)
             const zmanimRes = await fetch("https://www.hebcal.com/zmanim?cfg=json&latitude=32.09&longitude=34.88&tzid=Asia/Jerusalem");
             const zmanimData = await zmanimRes.json();
             
             const sunrise = new Date(zmanimData.times.sunrise).toLocaleTimeString("he-IL", {hour:"2-digit", minute:"2-digit"});
             const sunset = new Date(zmanimData.times.sunset).toLocaleTimeString("he-IL", {hour:"2-digit", minute:"2-digit"});
+            const tzait = new Date(zmanimData.times.tzeit7083).toLocaleTimeString("he-IL", {hour:"2-digit", minute:"2-digit"});
 
             document.getElementById("zmanim").innerHTML = 
-                `📖 <b>${parshaName}</b><br>` +
-                `🌅 זריחה: ${sunrise} | 🌇 שקיעה: ${sunset}`;
+                (parshaName ? `📖 <b>${parshaName}</b><br>` : '') +
+                `🌅 זריחה: ${sunrise} | 🌇 שקיעה: ${sunset} | ✨ צאת הכוכבים: ${tzait}`;
         } catch (e) {
             document.getElementById("zmanim").innerHTML = "זמני היום לא זמינים";
         }
