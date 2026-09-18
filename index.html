@@ -35,7 +35,8 @@
         }
 
         .top-left { display: flex; align-items: center; gap: 12px; }
-        #weather { color: #3498db; font-weight: bold; font-size: 0.95rem; min-width: 60px; }
+        #weather { color: #3498db; font-weight: bold; font-size: 0.85rem; min-width: 60px; }
+        #rates { color: #f39c12; font-size: 0.85rem; border-right: 1px solid #444; padding-right: 12px; line-height: 1.3; font-weight: 600; }
         #zmanim { color: #2ecc71; font-size: 0.85rem; border-right: 1px solid #444; padding-right: 12px; line-height: 1.3; }
         #clock { color: #f1c40f; font-weight: bold; text-align: left; line-height: 1.2; font-size: 0.9rem; }
         .btn-ui { background: #34495e; color: white; border: 1px solid #777; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
@@ -95,7 +96,8 @@
 
 <div class="top-bar">
     <div class="top-left">
-        <div id="weather">טוען...</div>
+        <div id="weather">טוען מזג אוויר...</div>
+        <div id="rates">טוען שערים...</div>
         <div id="zmanim">טוען זמני היום...</div>
         <button class="btn-ui" onclick="toggleDark()">🌓 החלף צבע</button>
     </div>
@@ -118,7 +120,6 @@
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4ncDieZ3xZKsaBVMbXt6vQkyyWaEFeyt4uWlx9JBIdvi5rS4G4w-HUXKx9MjpMCH4/exec";
 
-    // המרת מספר יום לגימטריה (כולל ט"ו וט"ז)
     function getGematriaDay(num) {
         const letters = {
             1:"א'", 2:"ב'", 3:"ג'", 4:"ד'", 5:"ה'", 6:"ו'", 7:"ז'", 8:"ח'", 9:"ט'",
@@ -134,7 +135,6 @@
             const timeStr = now.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
             const gregDate = now.toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit", year: "numeric" });
             
-            // חילוץ נתוני תאריך עברי מהדפדפן
             const hebDayNum = parseInt(new Intl.DateTimeFormat("he-u-ca-hebrew", {day:"numeric"}).format(now));
             const hebMonthName = new Intl.DateTimeFormat("he-u-ca-hebrew", {month:"long"}).format(now);
             const hebDayGematria = getGematriaDay(hebDayNum);
@@ -164,23 +164,45 @@
         } catch (e) { document.getElementById("weather").innerHTML = "ישראל"; }
     }
 
-    // משיכת זמני היום, פרשת השבוע, זריחה, שקיעה וצאת הכוכבים
+    // משיכת שערי דולר ואירו בזמן אמת
+    async function fetchRates() {
+        try {
+            const res = await fetch("https://open.er-api.com/v6/latest/USD");
+            const data = await res.json();
+            if(data && data.rates && data.rates.ILS) {
+                const usd = data.rates.ILS.toFixed(2);
+                const eur = (data.rates.ILS / data.rates.EUR).toFixed(2);
+                document.getElementById("rates").innerHTML = `💵 USD: ₪${usd}<br>💶 EUR: ₪${eur}`;
+            }
+        } catch (e) {
+            document.getElementById("rates").innerHTML = "שערים לא זמינים";
+        }
+    }
+
+    // משיכת זמני היום ופרשת השבוע
     async function fetchZmanim() {
         try {
-            const parshaRes = await fetch("https://www.hebcal.com/hebcal?v=1&cfg=json&s=on&i=on&start=now&end=now");
+            // טעינת פרשת השבוע הקרובה
+            const parshaRes = await fetch("https://www.hebcal.com/hebcal?v=1&cfg=json&s=on&i=on&m=0");
             const parshaData = await parshaRes.json();
             const parshaItem = parshaData.items ? parshaData.items.find(i => i.category === "parashat") : null;
-            const parshaName = parshaItem ? parshaItem.hebrew : "";
+            const parshaName = parshaItem ? parshaItem.hebrew : "פרשת השבוע";
 
+            // טעינת זמני היום (זריחה, שקיעה, צאת הכוכבים)
             const zmanimRes = await fetch("https://www.hebcal.com/zmanim?cfg=json&latitude=32.09&longitude=34.88&tzid=Asia/Jerusalem");
             const zmanimData = await zmanimRes.json();
             
-            const sunrise = new Date(zmanimData.times.sunrise).toLocaleTimeString("he-IL", {hour:"2-digit", minute:"2-digit"});
-            const sunset = new Date(zmanimData.times.sunset).toLocaleTimeString("he-IL", {hour:"2-digit", minute:"2-digit"});
-            const tzait = new Date(zmanimData.times.tzeit7083).toLocaleTimeString("he-IL", {hour:"2-digit", minute:"2-digit"});
+            const formatTime = (timeStr) => {
+                if (!timeStr) return "--:--";
+                return new Date(timeStr).toLocaleTimeString("he-IL", {hour:"2-digit", minute:"2-digit"});
+            };
+
+            const sunrise = formatTime(zmanimData.times.sunrise);
+            const sunset = formatTime(zmanimData.times.sunset);
+            const tzait = formatTime(zmanimData.times.tzeit85) !== "--:--" ? formatTime(zmanimData.times.tzeit85) : formatTime(zmanimData.times.dusk);
 
             document.getElementById("zmanim").innerHTML = 
-                (parshaName ? `📖 <b>${parshaName}</b><br>` : '') +
+                `📖 <b>${parshaName}</b><br>` +
                 `🌅 זריחה: ${sunrise} | 🌇 שקיעה: ${sunset} | ✨ צאת הכוכבים: ${tzait}`;
         } catch (e) {
             document.getElementById("zmanim").innerHTML = "זמני היום לא זמינים";
@@ -210,9 +232,11 @@
 
     setInterval(updateClock, 1000);
     setInterval(fetchNews, 60000);
+    setInterval(fetchRates, 300000); // עדכון שערים כל 5 דקות
     
     updateClock();
     fetchWeather();
+    fetchRates();
     fetchZmanim();
     fetchNews();
 </script>
