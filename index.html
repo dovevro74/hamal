@@ -10,7 +10,7 @@
             --text-main: #1c1e21;
             --item-bg: #ffffff;
             --header-bg: #2c3e50;
-            --top-h: 75px;
+            --top-h: 80px;
         }
 
         body.dark-mode {
@@ -35,8 +35,9 @@
         }
 
         .top-left { display: flex; align-items: center; gap: 12px; }
-        #weather { color: #3498db; font-weight: bold; font-size: 0.85rem; min-width: 60px; }
+        #weather { color: #3498db; font-weight: bold; font-size: 0.85rem; min-width: 55px; }
         #rates { color: #f39c12; font-size: 0.85rem; border-right: 1px solid #444; padding-right: 12px; line-height: 1.3; font-weight: 600; }
+        #shabbat { color: #e74c3c; font-size: 0.85rem; border-right: 1px solid #444; padding-right: 12px; line-height: 1.3; font-weight: 600; }
         #zmanim { color: #2ecc71; font-size: 0.85rem; border-right: 1px solid #444; padding-right: 12px; line-height: 1.3; }
         #clock { color: #f1c40f; font-weight: bold; text-align: left; line-height: 1.2; font-size: 0.9rem; }
         .btn-ui { background: #34495e; color: white; border: 1px solid #777; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
@@ -96,8 +97,9 @@
 
 <div class="top-bar">
     <div class="top-left">
-        <div id="weather">טוען מזג אוויר...</div>
+        <div id="weather">טוען...</div>
         <div id="rates">טוען שערים...</div>
+        <div id="shabbat">טוען זמני שבת...</div>
         <div id="zmanim">טוען זמני היום...</div>
         <button class="btn-ui" onclick="toggleDark()">🌓 החלף צבע</button>
     </div>
@@ -164,7 +166,6 @@
         } catch (e) { document.getElementById("weather").innerHTML = "ישראל"; }
     }
 
-    // משיכת שערי דולר ואירו בזמן אמת
     async function fetchRates() {
         try {
             const res = await fetch("https://open.er-api.com/v6/latest/USD");
@@ -179,16 +180,39 @@
         }
     }
 
-    // משיכת זמני היום ופרשת השבוע
+    // משיכת זמני כניסת שבת לתל אביב וירושלים
+    async function fetchShabbat() {
+        try {
+            // ירושלים (ID: 281184)
+            const resJlm = await fetch("https://www.hebcal.com/shabbat?cfg=json&geonameid=281184&m=0");
+            const dataJlm = await resJlm.json();
+            const jlmCandles = dataJlm.items.find(i => i.category === "candles");
+
+            // תל אביב (ID: 293397)
+            const resTav = await fetch("https://www.hebcal.com/shabbat?cfg=json&geonameid=293397&m=0");
+            const dataTav = await resTav.json();
+            const tavCandles = dataTav.items.find(i => i.category === "candles");
+
+            const timeFormat = (timeStr) => timeStr ? new Date(timeStr).toLocaleTimeString("he-IL", {hour:"2-digit", minute:"2-digit"}) : "--:--";
+
+            const jlmTime = jlmCandles ? timeFormat(jlmCandles.date) : "--:--";
+            const tavTime = tavCandles ? timeFormat(tavCandles.date) : "--:--";
+
+            document.getElementById("shabbat").innerHTML = 
+                `🕯️ <b>כניסת שבת</b><br>` +
+                `ירושלים: ${jlmTime} | ת"א: ${tavTime}`;
+        } catch (e) {
+            document.getElementById("shabbat").innerHTML = "זמני שבת לא זמינים";
+        }
+    }
+
     async function fetchZmanim() {
         try {
-            // טעינת פרשת השבוע הקרובה
             const parshaRes = await fetch("https://www.hebcal.com/hebcal?v=1&cfg=json&s=on&i=on&m=0");
             const parshaData = await parshaRes.json();
             const parshaItem = parshaData.items ? parshaData.items.find(i => i.category === "parashat") : null;
             const parshaName = parshaItem ? parshaItem.hebrew : "פרשת השבוע";
 
-            // טעינת זמני היום (זריחה, שקיעה, צאת הכוכבים)
             const zmanimRes = await fetch("https://www.hebcal.com/zmanim?cfg=json&latitude=32.09&longitude=34.88&tzid=Asia/Jerusalem");
             const zmanimData = await zmanimRes.json();
             
@@ -203,7 +227,7 @@
 
             document.getElementById("zmanim").innerHTML = 
                 `📖 <b>${parshaName}</b><br>` +
-                `🌅 זריחה: ${sunrise} | 🌇 שקיעה: ${sunset} | ✨ צאת הכוכבים: ${tzait}`;
+                `🌅 זריחה: ${sunrise} | 🌇 שקיעה: ${sunset} | ✨ צאת: ${tzait}`;
         } catch (e) {
             document.getElementById("zmanim").innerHTML = "זמני היום לא זמינים";
         }
@@ -232,11 +256,12 @@
 
     setInterval(updateClock, 1000);
     setInterval(fetchNews, 60000);
-    setInterval(fetchRates, 300000); // עדכון שערים כל 5 דקות
+    setInterval(fetchRates, 300000);
     
     updateClock();
     fetchWeather();
     fetchRates();
+    fetchShabbat();
     fetchZmanim();
     fetchNews();
 </script>
