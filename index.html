@@ -23,28 +23,29 @@
         body { font-family: system-ui, sans-serif; background: #000; margin: 0; padding: 0; height: 100vh; width: 100vw; display: flex; flex-direction: column; overflow: hidden; color: white; }
         
         .top-bar { 
-            height: var(--top-h);
+            min-height: var(--top-h);
             background: #111; 
-            padding: 0 15px; 
+            padding: 8px 15px; 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
             border-bottom: 1px solid #444; 
             box-sizing: border-box;
             flex-shrink: 0;
+            gap: 10px;
         }
 
-        .top-left { display: flex; align-items: center; gap: 12px; }
+        .top-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
         #weather { color: #3498db; font-weight: bold; font-size: 0.85rem; min-width: 55px; }
         #rates { color: #f39c12; font-size: 0.85rem; border-right: 1px solid #444; padding-right: 12px; line-height: 1.3; font-weight: 600; }
         #shabbat { color: #e74c3c; font-size: 0.82rem; border-right: 1px solid #444; padding-right: 12px; line-height: 1.2; font-weight: 600; }
         #zmanim { color: #2ecc71; font-size: 0.85rem; border-right: 1px solid #444; padding-right: 12px; line-height: 1.3; }
-        #clock { color: #f1c40f; font-weight: bold; text-align: left; line-height: 1.2; font-size: 0.9rem; }
+        #clock { color: #f1c40f; font-weight: bold; text-align: left; line-height: 1.2; font-size: 0.9rem; flex-shrink: 0; }
         .btn-ui { background: #34495e; color: white; border: 1px solid #777; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
 
         .main-layout { 
             display: flex; 
-            height: calc(100vh - var(--top-h)); 
+            flex: 1;
             width: 100%; 
             overflow: hidden; 
             position: relative; 
@@ -86,10 +87,41 @@
 
         iframe { width: 100%; height: 100%; border: none; flex: 1; }
 
+        /* התאמה למובייל ולמסכים קטנים */
         @media (max-width: 900px) {
-            .main-layout { flex-direction: column; }
-            .news-side { width: 100%; height: 45%; min-width: 100%; border-left: none; border-bottom: 4px solid #333; }
-            .news-side.hidden { margin-right: 0; margin-top: -45vh; }
+            body { height: 100dvh; overflow-y: auto; }
+            .top-bar { 
+                flex-direction: column; 
+                align-items: stretch; 
+                height: auto; 
+                padding: 10px; 
+                gap: 8px;
+            }
+            .top-left { 
+                display: grid; 
+                grid-template-columns: repeat(2, 1fr); 
+                gap: 8px; 
+                width: 100%; 
+            }
+            #rates, #shabbat, #zmanim { 
+                border-right: none; 
+                padding-right: 0; 
+                background: rgba(255, 255, 255, 0.05);
+                padding: 6px;
+                border-radius: 6px;
+                font-size: 0.75rem;
+            }
+            #weather { font-size: 0.8rem; }
+            #clock { 
+                text-align: center; 
+                width: 100%; 
+                border-top: 1px solid #333; 
+                padding-top: 6px; 
+            }
+            .main-layout { flex-direction: column; height: auto; }
+            .news-side { width: 100%; height: 50vh; min-width: 100%; border-left: none; border-bottom: 4px solid #333; }
+            .news-side.hidden { margin-right: 0; margin-top: -50vh; }
+            .map-side { height: 50vh; }
         }
     </style>
 </head>
@@ -101,9 +133,11 @@
         <div id="rates">טוען שערים...</div>
         <div id="shabbat">טוען זמני שבת...</div>
         <div id="zmanim">טוען זמני היום...</div>
-        <button class="btn-ui" onclick="toggleDark()">🌓 החלף צבע</button>
     </div>
-    <div id="clock">טוען זמן...</div>
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+        <button class="btn-ui" onclick="toggleDark()">🌓 החלף צבע</button>
+        <div id="clock">טוען זמן...</div>
+    </div>
 </div>
 
 <div class="main-layout">
