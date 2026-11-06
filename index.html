@@ -166,10 +166,10 @@
         <iframe src="https://www.tzevaadom.co.il/" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
     </div>
 
-    <!-- פאנל Flightradar24 משמאל -->
+    <!-- פאנל תעופה משמאל (חלופה מורשת) -->
     <div class="flight-side" id="flightSide">
-        <h2 class="header" style="background: #2980b9;">✈️ תנועת מטוסים (Flightradar24)</h2>
-        <iframe src="https://www.flightradar24.com/simple_index.php?lat=32.09&lon=34.88&z=8" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+        <h2 class="header" style="background: #2980b9;">✈️ תנועת מטוסים בזמן אמת</h2>
+        <iframe src="https://globe.adsbexchange.com/?lat=32.09&lon=34.88&zoom=8.5" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
     </div>
 </div>
 
@@ -259,68 +259,4 @@
                 `🕯️ <b>ירושלים:</b> ${timeFormat(jlmIn?.date)} - ${timeFormat(jlmOut?.date)}<br>` +
                 `🕯️ <b>תל אביב:</b> ${timeFormat(tavIn?.date)} - ${timeFormat(tavOut?.date)}`;
         } catch (e) {
-            document.getElementById("shabbat").innerHTML = "זמני שבת לא זמינים";
-        }
-    }
-
-    async function fetchZmanim() {
-        try {
-            const parshaRes = await fetch("https://www.hebcal.com/hebcal?v=1&cfg=json&s=on&i=on&m=0");
-            const parshaData = await parshaRes.json();
-            const parshaItem = parshaData.items ? parshaData.items.find(i => i.category === "parashat") : null;
-            const parshaName = parshaItem ? parshaItem.hebrew : "פרשת השבוע";
-
-            const zmanimRes = await fetch("https://www.hebcal.com/zmanim?cfg=json&latitude=32.09&longitude=34.88&tzid=Asia/Jerusalem");
-            const zmanimData = await zmanimRes.json();
-            
-            const formatTime = (timeStr) => {
-                if (!timeStr) return "--:--";
-                return new Date(timeStr).toLocaleTimeString("he-IL", {hour:"2-digit", minute:"2-digit"});
-            };
-
-            const sunrise = formatTime(zmanimData.times.sunrise);
-            const sunset = formatTime(zmanimData.times.sunset);
-            const tzait = formatTime(zmanimData.times.tzeit85) !== "--:--" ? formatTime(zmanimData.times.tzeit85) : formatTime(zmanimData.times.dusk);
-
-            document.getElementById("zmanim").innerHTML = 
-                `📖 <b>${parshaName}</b><br>` +
-                `🌅 זריחה: ${sunrise} | 🌇 שקיעה: ${sunset} | ✨ צאת הכוכבים: ${tzait}`;
-        } catch (e) {
-            document.getElementById("zmanim").innerHTML = "זמני היום לא זמינים";
-        }
-    }
-
-    async function fetchNews() {
-        const feed = document.getElementById("feed");
-        try {
-            const res = await fetch(SCRIPT_URL + "?t=" + Date.now());
-            const data = await res.json();
-            if(!data || data.length === 0) return;
-            
-            feed.innerHTML = data.map(item => {
-                const time = new Date(item.pubDate).toLocaleTimeString("he-IL", {hour:"2-digit", minute:"2-digit"});
-                const src = (item.source || "").toLowerCase();
-                let color = "#666", label = "מבזק";
-                if (src.includes("rotter")) { color = "#d35400"; label = "רוטר"; }
-                else if (src.includes("ynet")) { color = "#ed1c24"; label = "Ynet"; }
-                else if (src.includes("inn") || src.includes("7")) { color = "#f39c12"; label = "ערוץ 7"; }
-                return `<a href="${item.link}" target="_blank" class="news-item" style="border-right-color: ${color};">
-                    <div class="meta"><span class="badge" style="background-color: ${color};">${label}</span><span class="time">${time}</span></div>
-                    <div class="title">${item.title}</div></a>`;
-            }).join("");
-        } catch (e) { console.error("News error"); }
-    }
-
-    setInterval(updateClock, 1000);
-    setInterval(fetchNews, 60000);
-    setInterval(fetchRates, 300000);
-    
-    updateClock();
-    fetchWeather();
-    fetchRates();
-    fetchShabbat();
-    fetchZmanim();
-    fetchNews();
-</script>
-</body>
-</html>
+            document.getElementById("shabbat").innerHTML = "זמני שבת
