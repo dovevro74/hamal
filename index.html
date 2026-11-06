@@ -169,7 +169,7 @@
     <!-- פאנל תעופה משמאל -->
     <div class="flight-side" id="flightSide">
         <h2 class="header" style="background: #2980b9;">✈️ תנועת מטוסים בזמן אמת</h2>
-        <iframe src="https://globe.adsbexchange.com/?lat=32.09&lon=34.88&zoom=8.5" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+        <iframe src="https://globe.adsbexchange.com/?lat=32.09&lon=34.88&zoom=8.5"></iframe>
     </div>
 </div>
 
@@ -198,7 +198,7 @@
             document.getElementById("clock").innerHTML = 
                 `<span style="font-size:0.75rem; color:#888;">${gregDate}</span><br>` +
                 `${hebDayGematria} ב${hebMonthName} התשפ"ו | ${timeStr}`;
-        } catch (e) { console.error("Clock error"); }
+        } catch (e) { console.error("Clock error", e); }
     }
 
     function toggleDark() { document.body.classList.toggle("dark-mode"); }
@@ -247,13 +247,13 @@
 
             const resJlm = await fetch("https://www.hebcal.com/shabbat?cfg=json&geonameid=281184&m=50");
             const dataJlm = await resJlm.json();
-            const jlmIn = dataJlm.items.find(i => i.category === "candles");
-            const jlmOut = dataJlm.items.find(i => i.category === "havdalah");
+            const jlmIn = dataJlm.items ? dataJlm.items.find(i => i.category === "candles") : null;
+            const jlmOut = dataJlm.items ? dataJlm.items.find(i => i.category === "havdalah") : null;
 
             const resTav = await fetch("https://www.hebcal.com/shabbat?cfg=json&geonameid=293397&m=50");
             const dataTav = await resTav.json();
-            const tavIn = dataTav.items.find(i => i.category === "candles");
-            const tavOut = dataTav.items.find(i => i.category === "havdalah");
+            const tavIn = dataTav.items ? dataTav.items.find(i => i.category === "candles") : null;
+            const tavOut = dataTav.items ? dataTav.items.find(i => i.category === "havdalah") : null;
 
             document.getElementById("shabbat").innerHTML = 
                 `🕯️ <b>ירושלים:</b> ${timeFormat(jlmIn?.date)} - ${timeFormat(jlmOut?.date)}<br>` +
@@ -263,7 +263,6 @@
         }
     }
 
-    // משיכת זמני היום ופרשת השבוע המעודכנת לשבוע הנוכחי
     async function fetchZmanim() {
         try {
             const parshaRes = await fetch("https://www.hebcal.com/shabbat?cfg=json&geonameid=293397&m=0");
@@ -299,4 +298,30 @@
             if(!data || data.length === 0) return;
             
             feed.innerHTML = data.map(item => {
-                const time = new Date(item.pubDate).toLocaleTimeString("he-IL", {hour:"2-digit", minute:"2-
+                const time = new Date(item.pubDate).toLocaleTimeString("he-IL", {hour:"2-digit", minute:"2-digit"});
+                const src = (item.source || "").toLowerCase();
+                let color = "#666", label = "מבזק";
+                if (src.includes("rotter")) { color = "#d35400"; label = "רוטר"; }
+                else if (src.includes("ynet")) { color = "#ed1c24"; label = "Ynet"; }
+                else if (src.includes("inn") || src.includes("7")) { color = "#f39c12"; label = "ערוץ 7"; }
+                return `<a href="${item.link}" target="_blank" class="news-item" style="border-right-color: ${color};">
+                    <div class="meta"><span class="badge" style="background-color: ${color};">${label}</span><span class="time">${time}</span></div>
+                    <div class="title">${item.title}</div></a>`;
+            }).join("");
+        } catch (e) { console.error("News error", e); }
+    }
+
+    // הפעלה עצמאית ובטוחה של כל רכיב
+    setInterval(updateClock, 1000);
+    setInterval(fetchNews, 60000);
+    setInterval(fetchRates, 300000);
+    
+    updateClock();
+    setTimeout(fetchWeather, 100);
+    setTimeout(fetchRates, 300);
+    setTimeout(fetchShabbat, 500);
+    setTimeout(fetchZmanim, 700);
+    setTimeout(fetchNews, 1000);
+</script>
+</body>
+</html>
