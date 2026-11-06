@@ -51,15 +51,21 @@
             position: relative; 
         }
         
-        .news-side { width: 420px; min-width: 420px; background: var(--bg-side); display: flex; flex-direction: column; border-left: 4px solid #333; transition: margin-right 0.3s ease; z-index: 10; height: 100%; }
-        .news-side.hidden { margin-right: -420px; min-width: 0; }
+        /* פאנל מבזקים - ימין */
+        .news-side { width: 380px; min-width: 380px; background: var(--bg-side); display: flex; flex-direction: column; border-left: 4px solid #333; transition: margin-right 0.3s ease; z-index: 10; height: 100%; }
+        .news-side.hidden { margin-right: -380px; min-width: 0; }
 
+        /* פאנל תעופה - שמאל */
+        .flight-side { width: 420px; min-width: 420px; background: var(--bg-side); display: flex; flex-direction: column; border-right: 4px solid #333; transition: margin-left 0.3s ease; z-index: 10; height: 100%; }
+        .flight-side.hidden { margin-left: -420px; min-width: 0; }
+
+        /* מפה מרכזית - צבע אדום */
         .map-side { flex: 1; background: #000; position: relative; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
 
-        #toggle-btn {
+        /* כפתורי פתיחה/סגירה */
+        .toggle-btn {
             position: absolute;
             top: 50%;
-            right: 10px;
             transform: translateY(-50%);
             z-index: 1001;
             background: #2c3e50;
@@ -75,6 +81,9 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.8);
         }
 
+        #toggle-news-btn { right: 10px; }
+        #toggle-flight-btn { left: 10px; }
+
         .header { background: var(--header-bg); color: white; padding: 8px; text-align: center; margin: 0; border-bottom: 2px solid #111; font-size: 1rem; flex-shrink: 0; }
 
         #feed { flex: 1; overflow-y: auto; padding: 12px; background: var(--bg-side); }
@@ -87,7 +96,7 @@
 
         iframe { width: 100%; height: 100%; border: none; flex: 1; }
 
-        /* התאמה למובייל ולמסכים קטנים */
+        /* התאמה למובייל */
         @media (max-width: 900px) {
             body { height: 100dvh; overflow-y: auto; }
             .top-bar { 
@@ -119,9 +128,11 @@
                 padding-top: 6px; 
             }
             .main-layout { flex-direction: column; height: calc(100dvh - 160px); }
-            .news-side { width: 100%; height: 40%; min-width: 100%; border-left: none; border-bottom: 4px solid #333; }
-            .news-side.hidden { margin-right: 0; margin-top: -40%; }
-            .map-side { height: 60%; }
+            .news-side { width: 100%; height: 30%; min-width: 100%; border-left: none; border-bottom: 4px solid #333; }
+            .news-side.hidden { margin-right: 0; margin-top: -30%; }
+            .map-side { height: 45%; }
+            .flight-side { width: 100%; height: 25%; min-width: 100%; border-right: none; border-top: 4px solid #333; }
+            .flight-side.hidden { margin-left: 0; margin-bottom: -25%; }
         }
     </style>
 </head>
@@ -141,15 +152,24 @@
 </div>
 
 <div class="main-layout">
+    <!-- פאנל מבזקים מימין -->
     <div class="news-side" id="newsSide">
         <h2 class="header">מבזקים <button class="btn-ui" onclick="fetchNews()">🔄</button></h2>
         <div id="feed">טוען מבזקים...</div>
     </div>
 
+    <!-- מפה מרכזית -->
     <div class="map-side">
-        <div id="toggle-btn" onclick="toggleNews()">▶</div>
+        <div class="toggle-btn" id="toggle-news-btn" onclick="toggleNews()">▶</div>
+        <div class="toggle-btn" id="toggle-flight-btn" onclick="toggleFlight()">◀</div>
         <h2 class="header" style="background: #8e44ad;">מפת צבע אדום</h2>
         <iframe src="https://www.tzevaadom.co.il/" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+    </div>
+
+    <!-- פאנל Flightradar24 משמאל -->
+    <div class="flight-side" id="flightSide">
+        <h2 class="header" style="background: #2980b9;">✈️ תנועת מטוסים (Flightradar24)</h2>
+        <iframe src="https://www.flightradar24.com/simple_index.php?lat=32.09&lon=34.88&z=8" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
     </div>
 </div>
 
@@ -185,9 +205,16 @@
 
     function toggleNews() {
         const side = document.getElementById("newsSide");
-        const btn = document.getElementById("toggle-btn");
+        const btn = document.getElementById("toggle-news-btn");
         side.classList.toggle("hidden");
         btn.innerHTML = side.classList.contains("hidden") ? "◀" : "▶";
+    }
+
+    function toggleFlight() {
+        const side = document.getElementById("flightSide");
+        const btn = document.getElementById("toggle-flight-btn");
+        side.classList.toggle("hidden");
+        btn.innerHTML = side.classList.contains("hidden") ? "▶" : "◀";
     }
 
     async function fetchWeather() {
